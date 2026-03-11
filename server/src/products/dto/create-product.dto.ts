@@ -1,75 +1,74 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-    IsString,
-    IsNumber,
-    IsOptional,
-    IsInt,
-    Min,
-    IsIn,
-    IsUrl,
-} from 'class-validator';
 import { Transform } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsInt,
+  Min,
+  IsNumber,
+  IsUrl,
+} from 'class-validator';
 
-export const PRODUCT_CATEGORIES = [
-    'TYRES',
-    'BATTERIES',
-    'WIPERS',
-    'BRAKES',
-    'SEAT_COVERS',
-    'LIGHTING',
-    'AUDIO',
-    'OILS',
-    'ELECTRICAL',
-    'OTHER',
-];
+export enum ProductCategory {
+  TYRES = 'TYRES',
+  BATTERIES = 'BATTERIES',
+  WIPERS = 'WIPERS',
+  BRAKES = 'BRAKES',
+  SEAT_COVERS = 'SEAT_COVERS',
+  LIGHTING = 'LIGHTING',
+  AUDIO = 'AUDIO',
+  OILS = 'OILS',
+  ELECTRICAL = 'ELECTRICAL',
+  OTHER = 'OTHER',
+}
 
 export class CreateProductDto {
-    @ApiProperty({ example: 'Michelin Pilot Sport 4', description: 'Name of the product' })
-    @IsString()
-    name: string;
+  @ApiProperty({ example: 'Michelin Pilot Sport 4', description: 'Name of the product' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @ApiProperty({ example: 'TYRE-MIC-PS4-17', description: 'Unique Stock Keeping Unit' })
-    @IsString()
-    @Transform(({ value }) => typeof value === 'string' ? value.toUpperCase() : value)
-    sku: string;
+  @ApiProperty({ example: 'TYR-MCH-PS4-001', description: 'Unique SKU identifier (will be uppercase)' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
+  @IsString()
+  @IsNotEmpty()
+  sku: string;
 
-    @ApiProperty({
-        example: 'TYRES',
-        enum: PRODUCT_CATEGORIES,
-    })
-    @IsString()
-    @IsIn(PRODUCT_CATEGORIES)
-    category: string;
+  @ApiProperty({ enum: ProductCategory, example: ProductCategory.TYRES, description: 'Product category' })
+  @IsEnum(ProductCategory)
+  @IsNotEmpty()
+  category: string;
 
-    @ApiPropertyOptional({ example: 'Michelin' })
-    @IsOptional()
-    @IsString()
-    brand?: string;
+  @ApiPropertyOptional({ example: 'Michelin', description: 'Brand name' })
+  @IsString()
+  @IsOptional()
+  brand?: string;
 
-    @ApiProperty({ example: 50, minimum: 0 })
-    @IsInt()
-    @Min(0)
-    quantity: number;
+  @ApiProperty({ example: 40, description: 'Current inventory quantity' })
+  @IsInt()
+  @Min(0)
+  quantity: number;
 
-    @ApiProperty({ example: 4500, minimum: 0 })
-    @IsNumber()
-    @Min(0)
-    costPrice: number;
+  @ApiProperty({ example: 85.50, description: 'Cost price per unit' })
+  @IsNumber()
+  @Min(0)
+  costPrice: number;
 
-    @ApiProperty({ example: 5500, minimum: 0 })
-    @IsNumber()
-    @Min(0)
-    sellingPrice: number;
+  @ApiProperty({ example: 120.00, description: 'Selling price per unit' })
+  @IsNumber()
+  @Min(0)
+  sellingPrice: number;
 
-    @ApiPropertyOptional({ example: 10, minimum: 1, default: 5 })
-    @IsOptional()
-    @IsInt()
-    @Min(1)
-    reorderLevel?: number;
+  @ApiPropertyOptional({ example: 10, description: 'Reorder level alert threshold', default: 5 })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  reorderLevel?: number;
 
-    @ApiPropertyOptional({ example: 'https://example.com/image.jpg' })
-    @IsOptional()
-    @IsString()
-    @IsUrl()
-    imageUrl?: string;
+  @ApiPropertyOptional({ example: 'https://example.com/images/tyre.png', description: 'Product image URL' })
+  @IsUrl()
+  @IsOptional()
+  imageUrl?: string;
 }

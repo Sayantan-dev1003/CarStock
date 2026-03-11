@@ -28,7 +28,7 @@ class GenerateReportDto {
 }
 
 @ApiTags('Reports')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @Controller('reports')
 export class ReportsController {
