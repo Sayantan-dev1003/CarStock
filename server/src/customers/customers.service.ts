@@ -1,184 +1,139 @@
-import {
-    ConflictException,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
-import { Prisma, Customer, Vehicle } from '@prisma/client';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
-import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-
-// ── Response shapes ──────────────────────────────────────────────────────────
-
-export interface CustomerWithVehicles extends Customer {
-    vehicles: Vehicle[];
-}
-
-export interface PaginatedCustomers {
-    data: CustomerListItem[];
-    total: number;
-    page: number;
-    limit: number;
-}
-
-export interface CustomerListItem {
-    id: string;
-    name: string;
-    mobile: string;
-    email: string;
-    tag: string;
-    totalSpend: number;
-    vehicleCount: number;
-    lastBillDate: Date | null;
-    createdAt: Date;
-}
-
-// ── Service ──────────────────────────────────────────────────────────────────
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CustomersService {
-    constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-    // ── findByMobile — returns null instead of throwing (critical for billing) ──
-    async findByMobile(mobile: string): Promise<CustomerWithVehicles | null> {
-        return this.prisma.customer.findUnique({
-            where: { mobile },
-            include: { vehicles: true },
-        });
+  async findByMobile(mobile: string) {
+    return this.prisma.customer.findUnique({
+      where: { mobile },
+      include: {
+        vehicles: true,
+      },
+    });
+  }
+
+  async create(dto: CreateCustomerDto) {
+    const existingCustomer = await this.findByMobile(dto.mobile);
+    if (existingCustomer) {
+      throw new ConflictException('Customer with this mobile number already exists');
     }
 
-    // ── create ─────────────────────────────────────────────────────────────────
-    async create(dto: CreateCustomerDto): Promise<Customer> {
-        const existing = await this.findByMobile(dto.mobile);
-        if (existing) {
-            throw new ConflictException(
-                'Customer with this mobile number already exists',
-            );
+    return this.prisma.customer.create({
+      data: dto,
+    });
+  }
+
+  async findAll(page: number, limit: number, search?: string) {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.CustomerWhereInput = {
+      tag: { not: 'INACTIVE' },
+    };
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { mobile: { contains: search } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.customer.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: {
+            select: { vehicles: true }
+          },
+          bills: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { createdAt: true }
+          }
         }
-        return this.prisma.customer.create({ data: dto });
-    }
+      }),
+      this.prisma.customer.count({ where }),
+    ]);
 
-    // ── findAll (paginated, with vehicle count + last bill date) ───────────────
-    async findAll(
-        page: number,
-        limit: number,
-        search?: string,
-    ): Promise<PaginatedCustomers> {
-        const where: Prisma.CustomerWhereInput = search
-            ? {
-                OR: [
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { mobile: { contains: search, mode: 'insensitive' } },
-                ],
+    const formattedData = data.map(customer => {
+      const { _count, bills, ...rest } = customer;
+      return {
+        ...rest,
+        vehicleCount: _count.vehicles,
+        lastBillDate: bills.length > 0 ? bills[0].createdAt : null,
+      };
+    });
+
+    return {
+      data: formattedData,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async findOne(id: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { id },
+      include: {
+        vehicles: true,
+        bills: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+          include: {
+            items: {
+              include: {
+                product: { select: { name: true } }
+              }
             }
-            : {};
-
-        const [customers, total] = await this.prisma.$transaction([
-            this.prisma.customer.findMany({
-                where,
-                orderBy: { createdAt: 'desc' },
-                skip: (page - 1) * limit,
-                take: limit,
-                include: {
-                    vehicles: { select: { id: true } },
-                    bills: {
-                        select: { createdAt: true },
-                        orderBy: { createdAt: 'desc' },
-                        take: 1,
-                    },
-                },
-            }),
-            this.prisma.customer.count({ where }),
-        ]);
-
-        const data: CustomerListItem[] = customers.map((c) => ({
-            id: c.id,
-            name: c.name,
-            mobile: c.mobile,
-            email: c.email,
-            tag: c.tag,
-            totalSpend: c.totalSpend,
-            vehicleCount: c.vehicles.length,
-            lastBillDate: c.bills[0]?.createdAt ?? null,
-            createdAt: c.createdAt,
-        }));
-
-        return { data, total, page, limit };
-    }
-
-    // ── findOne — full detail with vehicles + last 20 bills ───────────────────
-    async findOne(id: string) {
-        const customer = await this.prisma.customer.findUnique({
-            where: { id },
-            include: {
-                vehicles: true,
-                bills: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 20,
-                    include: {
-                        items: {
-                            include: {
-                                product: { select: { id: true, name: true, sku: true } },
-                            },
-                        },
-                    },
-                },
-            },
-        });
-
-        if (!customer) {
-            throw new NotFoundException('Customer not found');
+          }
         }
+      }
+    });
 
-        return customer;
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
     }
 
-    // ── update ─────────────────────────────────────────────────────────────────
-    async update(id: string, dto: UpdateCustomerDto): Promise<Customer> {
-        const customer = await this.prisma.customer.findUnique({ where: { id } });
-        if (!customer) {
-            throw new NotFoundException('Customer not found');
-        }
+    return customer;
+  }
 
-        // If mobile is changing, make sure no other customer owns the new number
-        if (dto.mobile && dto.mobile !== customer.mobile) {
-            const mobileTaken = await this.prisma.customer.findUnique({
-                where: { mobile: dto.mobile },
-            });
-            if (mobileTaken) {
-                throw new ConflictException(
-                    'Customer with this mobile number already exists',
-                );
-            }
-        }
-
-        return this.prisma.customer.update({ where: { id }, data: dto });
+  async update(id: string, dto: UpdateCustomerDto) {
+    const customer = await this.prisma.customer.findUnique({ where: { id } });
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
     }
 
-    // ── addVehicle — adds a vehicle (with number plate) to a customer ──────────
-    async addVehicle(customerId: string, dto: CreateVehicleDto): Promise<Vehicle> {
-        const customer = await this.prisma.customer.findUnique({
-            where: { id: customerId },
-        });
-        if (!customer) {
-            throw new NotFoundException('Customer not found');
-        }
-        return this.prisma.vehicle.create({
-            data: { ...dto, customerId },
-        });
+    if (dto.mobile && dto.mobile !== customer.mobile) {
+      const existingMobile = await this.prisma.customer.findUnique({
+        where: { mobile: dto.mobile }
+      });
+      if (existingMobile) {
+        throw new ConflictException('Customer with this mobile number already exists');
+      }
     }
 
-    // ── updateTotalSpend — called inside a billing $transaction ───────────────
-    // tx is the Prisma transaction client passed from BillingService
-    async updateTotalSpend(
-        customerId: string,
-        amount: number,
-        tx: Prisma.TransactionClient,
-    ): Promise<void> {
-        await tx.customer.update({
-            where: { id: customerId },
-            data: { totalSpend: { increment: amount } },
-        });
-    }
+    return this.prisma.customer.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async updateTotalSpend(customerId: string, amount: number, tx: Prisma.TransactionClient) {
+    return tx.customer.update({
+      where: { id: customerId },
+      data: {
+        totalSpend: {
+          increment: amount,
+        },
+      },
+    });
+  }
 }

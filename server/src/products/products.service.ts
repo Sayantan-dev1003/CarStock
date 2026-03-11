@@ -117,6 +117,7 @@ export class ProductsService {
     }
 
     async getLowStock() {
+        // This data is also used by InventoryService getInventorySummary() via direct Prisma queries to avoid circular dependency
         const activeProducts = await this.prisma.product.findMany({
             where: { isActive: true },
             select: {

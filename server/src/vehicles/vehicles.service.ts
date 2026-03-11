@@ -30,6 +30,7 @@ export interface VehicleDetail {
         productId: string;
         category: string;
         purchasedAt: Date;
+        productName?: string;
     }[];
 }
 
@@ -90,7 +91,22 @@ export class VehiclesService {
             throw new NotFoundException('Vehicle not found');
         }
 
-        return vehicle as VehicleDetail;
+        const productIds = vehicle.purchaseLogs.map((log) => log.productId);
+        const products = await this.prisma.product.findMany({
+            where: { id: { in: productIds } },
+            select: { id: true, name: true },
+        });
+        const productMap = new Map(products.map((p) => [p.id, p.name]));
+
+        const logsWithProductName = vehicle.purchaseLogs.map((log) => ({
+            ...log,
+            productName: productMap.get(log.productId) || 'Unknown Product',
+        }));
+
+        return {
+            ...vehicle,
+            purchaseLogs: logsWithProductName,
+        } as VehicleDetail;
     }
 
     // ── update — only provided fields are changed ──────────────────────────────
