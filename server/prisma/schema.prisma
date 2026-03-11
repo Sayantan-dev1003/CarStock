@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  name         String
+  shopName     String
+  shopPhone    String?
+  logoUrl      String?
+  deviceToken  String?  // FCM push token
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id             String      @id @default(uuid())
+  name           String
+  sku            String      @unique
+  category       String
+  brand          String?
+  quantity       Int         @default(0)
+  costPrice      Float
+  sellingPrice   Float
+  reorderLevel   Int         @default(5)
+  imageUrl       String?
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  billItems      BillItem[]
+  stockLogs      StockLog[]
+}
+
+model Customer {
+  id          String    @id @default(uuid())
+  name        String
+  mobile      String    @unique
+  email       String
+  tag         String    @default("REGULAR") // VIP, REGULAR, INACTIVE
+  totalSpend  Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  vehicles    Vehicle[]
+  bills       Bill[]
+}
+
+model Vehicle {
+  id           String               @id @default(uuid())
+  customerId   String
+  customer     Customer             @relation(fields: [customerId], references: [id])
+  make         String
+  model        String
+  year         Int
+  fuelType     String?
+  regNumber    String?
+  createdAt    DateTime             @default(now())
+  purchaseLogs VehiclePurchaseLog[]
+}
+
+model Bill {
+  id            String     @id @default(uuid())
+  billNumber    String     @unique
+  customerId    String
+  customer      Customer   @relation(fields: [customerId], references: [id])
+  items         BillItem[]
+  subtotal      Float
+  discount      Float      @default(0)
+  cgst          Float
+  sgst          Float
+  total         Float
+  paymentMode   String     // CASH, UPI, CARD
+  pdfUrl        String?
+  emailSent     Boolean    @default(false)
+  whatsappSent  Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+}
+
+model BillItem {
+  id         String   @id @default(uuid())
+  billId     String
+  bill       Bill     @relation(fields: [billId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float
+  total      Float
+}
+
+model VehiclePurchaseLog {
+  id          String   @id @default(uuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  billId      String
+  productId   String
+  category    String
+  purchasedAt DateTime @default(now())
+}
+
+model StockLog {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  type      String   // ADD, DEDUCT
+  quantity  Int
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model ReminderLog {
+  id            String   @id @default(uuid())
+  customerId    String
+  vehicleId     String
+  purchaseLogId String
+  category      String
+  sentAt        DateTime @default(now())
+  emailSent     Boolean  @default(false)
+  whatsappSent  Boolean  @default(false)
+}

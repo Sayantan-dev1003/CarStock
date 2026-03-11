@@ -1,0 +1,69 @@
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Build output ─────────────────────────────────────────────────────────────
+dist/
+build/
+
+# ─── TypeScript ───────────────────────────────────────────────────────────────
+*.tsbuildinfo
+*.js.map
+
+# ─── Environment variables ────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Keep the example file committed:
+!.env.example
+
+# ─── Prisma ───────────────────────────────────────────────────────────────────
+# Generated client (regenerated on postinstall)
+prisma/generated/
+# Ignore local SQLite databases if used
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ─── File Uploads ─────────────────────────────────────────────────────────────
+# Ignore multer uploads if stored locally
+uploads/
+public/uploads/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── Test / coverage ──────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+# docker-compose.override.yml   # uncomment if you use local overrides
+
+# ─── Editor / OS ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── Cloud & Service Credentials ──────────────────────────────────────────────
+*firebase*.json
+*service-account*.json
+serviceAccountKey.json
+google-credentials.json
+*.pem

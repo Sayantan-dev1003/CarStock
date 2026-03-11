@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "CarStock Admin",
+    "slug": "carstock-admin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "carstock",
+    "splash": {
+      "backgroundColor": "#E23744"
+    },
+    "ios": {
+      "bundleIdentifier": "com.carstock.admin",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is not used in this app"
+      }
+    },
+    "android": {
+      "package": "com.carstock.admin",
+      "permissions": []
+    },
+    "plugins": [
+      "expo-router",
+      "expo-local-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#E23744"
+        }
+      ]
+    ]
+  }
+}
