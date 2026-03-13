@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { InventoryGateway } from '../gateways/inventory.gateway';
 import { EmailService } from '../email/email.service';
+import { WhatsAppService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class InventoryService {
@@ -11,7 +12,8 @@ export class InventoryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly inventoryGateway: InventoryGateway,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly whatsappService: WhatsAppService
   ) {}
 
   async addStock(dto: UpdateStockDto) {
@@ -138,6 +140,16 @@ export class InventoryService {
             }],
             generatedAt: new Date().toISOString()
           }).catch(err => this.logger.error(`Failed to send low stock email: ${err.message}`));
+
+          if (adminRecord.shopPhone) {
+            this.whatsappService.sendLowStockAlert({
+              adminMobile: adminRecord.shopPhone,
+              productName,
+              currentQuantity,
+              reorderLevel,
+              shopName: adminRecord.shopName
+            }).catch(err => this.logger.error(`Failed to send low stock WhatsApp: ${err.message}`));
+          }
         }
       });
 

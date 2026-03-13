@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Twilio } from 'twilio';
+import twilio from 'twilio';
 
 @Injectable()
 export class WhatsAppService {
     private readonly logger = new Logger(WhatsAppService.name);
-    private readonly client: Twilio;
+    private readonly client: any;
     private readonly twilioWhatsAppNumber: string;
 
     constructor(private configService: ConfigService) {
@@ -17,7 +17,7 @@ export class WhatsAppService {
             this.logger.error('Twilio credentials are not fully defined in environment variables');
         }
 
-        this.client = new Twilio(accountSid, authToken);
+        this.client = twilio(accountSid, authToken);
     }
 
     private formatIndianNumber(mobile: string): string {

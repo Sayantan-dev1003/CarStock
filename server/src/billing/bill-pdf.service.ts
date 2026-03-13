@@ -112,7 +112,17 @@ export class BillPdfService {
       `;
 
       await page.setContent(html, { waitUntil: 'networkidle0' });
-      const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20px',
+          right: '20px',
+          bottom: '20px',
+          left: '20px',
+        },
+      });
+
       return Buffer.from(pdfBuffer);
     } catch (error) {
       this.logger.error('Error generating PDF', error.stack);
