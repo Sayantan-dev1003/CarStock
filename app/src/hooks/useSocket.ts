@@ -1,71 +1,50 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useInventoryStore } from '../store/inventory.store';
 
-interface StockUpdatePayload {
-    productId: string;
-    productName: string;
-    newQuantity: number;
-    type: 'ADD' | 'DEDUCT';
-    timestamp: string;
-}
-
-interface LowStockAlertPayload {
-    productId: string;
-    productName: string;
-    currentQuantity: number;
-    reorderLevel: number;
-    timestamp: string;
-}
-
 export function useSocket() {
-    const [isConnected, setIsConnected] = useState(false);
-    const socketRef = useRef<Socket | null>(null);
-    const inventoryStore = useInventoryStore();
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const updateProductQuantity = useInventoryStore((state) => state.updateProductQuantity);
+  const setLowStockCount = useInventoryStore((state) => state.setLowStockCount);
 
-    useEffect(() => {
-        // Create socket connection
-        const socket = io(process.env.EXPO_PUBLIC_SOCKET_URL as string, {
-            transports: ['websocket'],
-            autoConnect: true,
-            reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 3000,
-        });
+  useEffect(() => {
+    const socketInstance = io(process.env.EXPO_PUBLIC_SOCKET_URL!, {
+      transports: ['websocket'],
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 3000,
+    });
 
-        socketRef.current = socket;
+    socketInstance.on('connect', () => {
+      setIsConnected(true);
+      console.log('Socket connected');
+    });
 
-        socket.on('connect', () => {
-            console.log('Socket connected to server');
-            setIsConnected(true);
-        });
+    socketInstance.on('disconnect', () => {
+      setIsConnected(false);
+      console.log('Socket disconnected');
+    });
 
-        socket.on('disconnect', () => {
-            console.log('Socket disconnected');
-            setIsConnected(false);
-        });
+    socketInstance.on('stock_updated', (data: { productId: string; quantity: number }) => {
+      updateProductQuantity(data.productId, data.quantity);
+    });
 
-        socket.on('stock_updated', (payload: StockUpdatePayload) => {
-            console.log('Stock updated:', payload);
-            inventoryStore.updateProductQuantity(payload.productId, payload.newQuantity);
-        });
+    socketInstance.on('low_stock_alert', (data: { count: number }) => {
+      setLowStockCount(data.count);
+    });
 
-        socket.on('low_stock_alert', (payload: LowStockAlertPayload) => {
-            console.log('Low stock alert:', payload);
-            // In a real app, we'd show a toast here
-            // For now, we update the store which can trigger UI changes
-            inventoryStore.setLowStockCount(inventoryStore.lowStockCount + 1);
-        });
+    socketInstance.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
 
-        socket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error);
-            setIsConnected(false);
-        });
+    setSocket(socketInstance);
 
-        return () => {
-            socket.disconnect();
-        };
-    }, []);
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, []);
 
-    return { isConnected };
+  return { socket, isConnected };
 }

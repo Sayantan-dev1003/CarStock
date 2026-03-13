@@ -1,179 +1,154 @@
-import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    RefreshControl,
-    TouchableOpacity,
+import React, { useState, useMemo } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  TouchableOpacity, 
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { FAB } from 'react-native-paper';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
 import { customersApi } from '../../../src/api/customers.api';
 import { CustomerCard } from '../../../src/components/customers/CustomerCard';
-import { AppInput } from '../../../src/components/common/AppInput';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { EmptyState } from '../../../src/components/common/EmptyState';
-import { useDebounce } from '../../../src/hooks/useDebounce';
+import { AppInput } from '../../../src/components/common/AppInput';
 
-const TAGS = ['ALL', 'REGULAR', 'VIP', 'NEW'];
+const TAGS = ['ALL', 'REGULAR', 'VIP', 'NEW', 'INACTIVE'];
 
 export default function CustomersScreen() {
-    const router = useRouter();
-    const [search, setSearch] = useState('');
-    const [page, setPage] = useState(1);
-    const [selectedTag, setSelectedTag] = useState('ALL');
+  const router = useRouter();
+  const [search, setSearch] = useState('');
+  const [selectedTag, setSelectedTag] = useState('ALL');
 
-    const debouncedSearch = useDebounce(search, 500);
+  const { 
+    data: customers, 
+    isLoading, 
+    refetch,
+    isRefetching 
+  } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => customersApi.getCustomers(1, 100),
+  });
 
-    const {
-        data: customersData,
-        isLoading,
-        refetch,
-        isRefetching,
-    } = useQuery({
-        queryKey: ['customers', debouncedSearch, page],
-        queryFn: () => customersApi.getCustomers({
-            page,
-            limit: 20,
-            search: debouncedSearch,
-        }),
+  const filteredCustomers = useMemo(() => {
+    return (customers?.data || []).filter((c: any) => {
+      const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || 
+                           c.mobile.includes(search);
+      const matchesTag = selectedTag === 'ALL' || c.tag === selectedTag;
+      return matchesSearch && matchesTag;
     });
+  }, [customers, search, selectedTag]);
 
-    // Client-side filtering for tags if API doesn't support it directly in query?
-    // Looking at customersApi, it only has search. Better to filter locally or assume search handles it.
-    // For now, let's just search and display.
+  if (isLoading) return <LoadingSpinner />;
 
-    const renderHeader = () => (
-        <View style={styles.header}>
-            <Text style={styles.title}>Customers</Text>
-            <AppInput
-                label=""
-                placeholder="Search by name or mobile..."
-                value={search}
-                onChangeText={setSearch}
-                leftIcon="magnify"
-                containerStyle={styles.searchBar}
-            />
-            <View style={styles.tagContainer}>
-                {TAGS.map((tag) => (
-                    <TouchableOpacity
-                        key={tag}
-                        style={[
-                            styles.tagChip,
-                            selectedTag === tag && styles.tagChipActive,
-                        ]}
-                        onPress={() => setSelectedTag(tag)}
-                    >
-                        <Text style={[
-                            styles.tagText,
-                            selectedTag === tag && styles.tagTextActive
-                        ]}>{tag}</Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-        </View>
-    );
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <AppInput
+          placeholder="Search customers by name or mobile..."
+          value={search}
+          onChangeText={setSearch}
+          leftIcon="account-search"
+          containerStyle={styles.searchBar}
+        />
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.filterBar}
+          contentContainerStyle={styles.filterContent}
+        >
+          {TAGS.map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={[
+                styles.filterChip,
+                selectedTag === tag && styles.activeFilterChip
+              ]}
+              onPress={() => setSelectedTag(tag)}
+            >
+              <Text style={[
+                styles.filterChipText,
+                selectedTag === tag && styles.activeFilterChipText
+              ]}>
+                {tag}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
-    const filteredData = customersData?.data.filter(c =>
-        selectedTag === 'ALL' || c.tag === selectedTag
-    ) || [];
-
-    return (
-        <View style={styles.container}>
-            <FlatList
-                data={filteredData}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <CustomerCard
-                        customer={item}
-                        onPress={(c) => router.push({
-                            pathname: '/(app)/customers/customer-detail',
-                            params: { id: c.id }
-                        })}
-                    />
-                )}
-                ListHeaderComponent={renderHeader}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />
-                }
-                ListEmptyComponent={
-                    isLoading ? <LoadingSpinner /> : (
-                        <EmptyState
-                            icon="account-search-outline"
-                            title="No customers found"
-                            subtitle="Try a different search term"
-                        />
-                    )
-                }
-            />
-
-            <FAB
-                icon="account-plus"
-                style={styles.fab}
-                color={Colors.white}
-                onPress={() => {
-                    // For simplicity, we could reuse a specialized modal or 
-                    // go to billing flow which handles creation
-                }}
-            />
-        </View>
-    );
+      <FlatList
+        data={filteredCustomers}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <CustomerCard
+            customer={item}
+            onPress={(c) => router.push(`/(app)/customers/${c.id}`)}
+          />
+        )}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[Colors.primary]} />
+        }
+        ListEmptyComponent={
+          <EmptyState
+            icon="account-outline"
+            title="No customers found"
+            subtitle="Start by creating a new bill or customer profile"
+          />
+        }
+      />
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.screenBg,
-    },
-    listContent: {
-        paddingBottom: 100,
-    },
-    header: {
-        padding: Spacing.lg,
-        backgroundColor: Colors.white,
-        marginBottom: Spacing.md,
-        ...Shadows.sm,
-    },
-    title: {
-        fontSize: Typography.fontSizes.xl,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.dark,
-        marginBottom: Spacing.md,
-    },
-    searchBar: {
-        marginBottom: Spacing.md,
-    },
-    tagContainer: {
-        flexDirection: 'row',
-    },
-    tagChip: {
-        paddingHorizontal: Spacing.md,
-        paddingVertical: 6,
-        borderRadius: BorderRadius.full,
-        backgroundColor: Colors.grey100,
-        marginRight: Spacing.sm,
-    },
-    tagChipActive: {
-        backgroundColor: Colors.primary,
-    },
-    tagText: {
-        fontSize: 12,
-        color: Colors.grey600,
-        fontWeight: Typography.fontWeights.medium,
-    },
-    tagTextActive: {
-        color: Colors.white,
-        fontWeight: Typography.fontWeights.bold,
-    },
-    fab: {
-        position: 'absolute',
-        margin: 16,
-        right: 0,
-        bottom: 0,
-        backgroundColor: Colors.primary,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.screenBg,
+  },
+  header: {
+    backgroundColor: Colors.white,
+    paddingTop: Spacing.sm,
+    ...Shadows.sm,
+  },
+  searchBar: {
+    paddingHorizontal: Spacing.base,
+    marginBottom: Spacing.sm,
+  },
+  filterBar: {
+    paddingBottom: Spacing.sm,
+  },
+  filterContent: {
+    paddingHorizontal: Spacing.base,
+  },
+  filterChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.offWhite,
+    marginRight: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.grey200,
+  },
+  activeFilterChip: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterChipText: {
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.grey600,
+    fontWeight: Typography.fontWeights.medium,
+  },
+  activeFilterChipText: {
+    color: Colors.white,
+  },
+  listContent: {
+    padding: Spacing.base,
+  },
 });

@@ -1,12 +1,12 @@
 import client from './client';
+import { ApiResponse } from '../types/api.types';
 
 export const notificationsApi = {
-    registerToken: async (deviceToken: string): Promise<{ message: string }> => {
-        const response = await client.post('/notifications/register-token', { deviceToken });
-        return response.data;
-    },
-    testPush: async (): Promise<{ sent: boolean; message: string }> => {
-        const response = await client.post('/notifications/test-push');
-        return response.data;
-    },
+  registerToken: async (deviceToken: string): Promise<void> => {
+    await client.post('/notifications/register-token', { deviceToken });
+  },
+
+  testPush: async (): Promise<void> => {
+    await client.post('/notifications/test-push');
+  },
 };

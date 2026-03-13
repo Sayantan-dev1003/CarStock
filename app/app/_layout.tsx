@@ -1,48 +1,42 @@
-import { useEffect } from 'react';
-import { Stack, useRouter } from 'expo-router';
-import { PaperProvider } from 'react-native-paper';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { queryClient } from '../src/utils/queryClient';
+import React, { useEffect } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { useAuthStore } from '../src/store/auth.store';
 import { authEvents } from '../src/utils/eventEmitter';
+import { queryClient } from '../src/utils/queryClient';
 import { OfflineBanner } from '../src/components/common/OfflineBanner';
-import { StatusBar } from 'expo-status-bar';
 
 export default function RootLayout() {
-    const router = useRouter();
-    const { loadStoredTokens, clearAuth } = useAuthStore();
+  const { loadStoredTokens, clearAuth, isAuthenticated } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
 
-    useEffect(() => {
-        // 1. Load tokens on mount
-        loadStoredTokens();
+  useEffect(() => {
+    loadStoredTokens();
 
-        // 2. Listen to logout event
-        const handleLogout = async () => {
-            await clearAuth();
-            router.replace('/(auth)/login');
-        };
+    const handleLogout = async () => {
+      await clearAuth();
+      router.replace('/(auth)/login');
+    };
 
-        authEvents.on('auth:logout', handleLogout);
+    authEvents.on('auth:logout', handleLogout);
 
-        return () => {
-            authEvents.off('auth:logout', handleLogout);
-        };
-    }, []);
+    return () => {
+      authEvents.off('auth:logout', handleLogout);
+    };
+  }, []);
 
-    return (
-        <QueryClientProvider client={queryClient}>
-            <SafeAreaProvider>
-                <PaperProvider>
-                    <StatusBar style="auto" />
-                    <OfflineBanner />
-                    <Stack screenOptions={{ headerShown: false }}>
-                        <Stack.Screen name="index" />
-                        <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
-                        <Stack.Screen name="(app)" options={{ animation: 'fade' }} />
-                    </Stack>
-                </PaperProvider>
-            </SafeAreaProvider>
-        </QueryClientProvider>
-    );
+  return (
+    <QueryClientProvider client={queryClient}>
+      <PaperProvider>
+        <OfflineBanner />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(app)" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+        </Stack>
+      </PaperProvider>
+    </QueryClientProvider>
+  );
 }

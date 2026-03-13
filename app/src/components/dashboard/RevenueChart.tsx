@@ -1,96 +1,88 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { VictoryBar, VictoryChart, VictoryAxis, VictoryTheme } from 'victory-native';
+import { CartesianChart, Bar, useChartPressState } from 'victory-native';
+import { useFont } from '@shopify/react-native-skia';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { formatCurrency } from '../../utils/format';
 
-interface RevenueChartProps {
-    data: { day: string; revenue: number }[];
+interface RevenueData {
+  day: string;
+  revenue: number;
+  [key: string]: string | number;
 }
 
+interface RevenueChartProps {
+  data: RevenueData[];
+}
+
+const { width } = Dimensions.get('window');
+
 export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
-    const screenWidth = Dimensions.get('window').width;
-
-    if (!data || data.length === 0) {
-        return (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No revenue data available for this week</Text>
-            </View>
-        );
-    }
-
+  if (!data || data.length === 0) {
     return (
-        <View style={styles.container}>
-            <VictoryChart
-                theme={VictoryTheme.material}
-                width={screenWidth - Spacing.lg * 2}
-                height={220}
-                padding={{ top: 20, bottom: 40, left: 50, right: 20 }}
-                domainPadding={{ x: 20 }}
-            >
-                <VictoryAxis
-                    tickValues={data.map((d) => d.day)}
-                    style={{
-                        axis: { stroke: Colors.grey200 },
-                        tickLabels: {
-                            fontSize: 10,
-                            fill: Colors.grey500,
-                            fontWeight: Typography.fontWeights.medium
-                        },
-                        grid: { stroke: 'transparent' }
-                    }}
-                />
-                <VictoryAxis
-                    dependentAxis
-                    tickFormat={(x) => `₹${x / 1000}k`}
-                    style={{
-                        axis: { stroke: Colors.grey200 },
-                        tickLabels: {
-                            fontSize: 10,
-                            fill: Colors.grey500,
-                            fontWeight: Typography.fontWeights.medium
-                        },
-                        grid: { stroke: Colors.grey100, strokeDasharray: '4, 4' }
-                    }}
-                />
-                <VictoryBar
-                    data={data}
-                    x="day"
-                    y="revenue"
-                    style={{
-                        data: {
-                            fill: Colors.primary,
-                            width: 20,
-                            borderRadius: 4,
-                        },
-                    }}
-                    animate={{
-                        duration: 500,
-                        onLoad: { duration: 500 }
-                    }}
-                />
-            </VictoryChart>
-        </View>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No revenue data available</Text>
+      </View>
     );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Revenue This Week</Text>
+      <View style={{ height: 220, width: '100%' }}>
+        <CartesianChart
+          data={data}
+          xKey="day"
+          yKeys={["revenue"]}
+          padding={{ top: 20, bottom: 20, left: 10, right: 10 }}
+        >
+          {({ points, chartBounds }) => (
+            <Bar
+              points={points.revenue}
+              chartBounds={chartBounds}
+              color={Colors.primary}
+              roundedCorners={{
+                topLeft: 4,
+                topRight: 4,
+              }}
+            />
+          )}
+        </CartesianChart>
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: Colors.white,
-        borderRadius: BorderRadius.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    emptyContainer: {
-        height: 200,
-        backgroundColor: Colors.white,
-        borderRadius: BorderRadius.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: Spacing.xl,
-    },
-    emptyText: {
-        color: Colors.grey400,
-        fontSize: Typography.fontSizes.sm,
-        textAlign: 'center',
-    },
+  container: {
+    backgroundColor: Colors.white,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    marginVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.grey200,
+  },
+  title: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.fontWeights.bold,
+    color: Colors.dark,
+    marginBottom: Spacing.sm,
+  },
+  chartContainer: {
+    alignItems: 'center',
+    marginLeft: -Spacing.md, // Offset chart padding
+  },
+  emptyContainer: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.grey200,
+  },
+  emptyText: {
+    color: Colors.grey500,
+    fontSize: Typography.fontSizes.sm,
+  },
 });

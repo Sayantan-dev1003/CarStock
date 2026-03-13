@@ -1,96 +1,112 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { AppButton } from '../common/AppButton';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, BorderRadius } from '../../constants/theme';
-import { useBillingStore } from '../../store/billing.store';
+import { AppButton } from '../common/AppButton';
+import { formatCurrency } from '../../utils/format';
+import { BillItem } from '../../types/billing.types';
 
 interface BillSummaryBarProps {
-    onProceed: () => void;
-    disabled?: boolean;
+  items: BillItem[];
+  discount: number;
+  onProceed: () => void;
+  onDiscountPress: () => void;
 }
 
-export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({ onProceed, disabled }) => {
-    const { items, discount, getSubtotal, getTotal } = useBillingStore();
-    const subtotal = getSubtotal();
-    const total = getTotal();
-    const discountedAmount = subtotal - discount;
-    const cgst = discountedAmount * 0.09;
-    const sgst = discountedAmount * 0.09;
+export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
+  items,
+  discount,
+  onProceed,
+  onDiscountPress,
+}) => {
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const gst = subtotal * 0.18; // 9% CGST + 9% SGST
+  const total = subtotal + gst - discount;
 
-    if (items.length === 0) return null;
+  if (items.length === 0) return null;
 
-    return (
-        <View style={styles.container}>
-            <View style={styles.details}>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Subtotal</Text>
-                    <Text style={styles.value}>₹{subtotal.toFixed(2)}</Text>
-                </View>
-                {discount > 0 && (
-                    <View style={styles.row}>
-                        <Text style={[styles.label, { color: Colors.success }]}>Discount</Text>
-                        <Text style={[styles.value, { color: Colors.success }]}>-₹{discount.toFixed(2)}</Text>
-                    </View>
-                )}
-                <View style={styles.row}>
-                    <Text style={styles.label}>GST (18%)</Text>
-                    <Text style={styles.value}>₹{(cgst + sgst).toFixed(2)}</Text>
-                </View>
-                <View style={[styles.row, styles.totalRow]}>
-                    <Text style={styles.totalLabel}>Total</Text>
-                    <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
-                </View>
-            </View>
-
-            <AppButton
-                title="Proceed to Checkout"
-                onPress={onProceed}
-                disabled={disabled}
-                fullWidth
-                size="lg"
-            />
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.detailsRow}>
+          <TouchableOpacity style={styles.detailItem} onPress={onDiscountPress}>
+            <Text style={styles.label}>Discount</Text>
+            <Text style={[styles.value, discount > 0 && styles.discountValue]}>
+              - {formatCurrency(discount)}
+            </Text>
+          </TouchableOpacity>
+          
+          <View style={styles.detailItem}>
+            <Text style={styles.label}>GST (18%)</Text>
+            <Text style={styles.value}>{formatCurrency(gst)}</Text>
+          </View>
+          
+          <View style={styles.totalItem}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
+          </View>
         </View>
-    );
+
+        <AppButton
+          title={`Checkout (${items.length} ${items.length === 1 ? 'item' : 'items'})`}
+          onPress={onProceed}
+          size="lg"
+          rightIcon="arrow-right"
+          style={styles.button}
+        />
+      </View>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: Colors.white,
-        padding: Spacing.lg,
-        borderTopLeftRadius: BorderRadius.xl,
-        borderTopRightRadius: BorderRadius.xl,
-        ...Shadows.lg,
-    },
-    details: {
-        marginBottom: Spacing.md,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: Spacing.xs,
-    },
-    label: {
-        fontSize: Typography.fontSizes.sm,
-        color: Colors.grey500,
-    },
-    value: {
-        fontSize: Typography.fontSizes.sm,
-        color: Colors.dark,
-    },
-    totalRow: {
-        marginTop: Spacing.xs,
-        paddingTop: Spacing.xs,
-        borderTopWidth: 1,
-        borderTopColor: Colors.grey100,
-    },
-    totalLabel: {
-        fontSize: Typography.fontSizes.md,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.dark,
-    },
-    totalValue: {
-        fontSize: Typography.fontSizes.lg,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.primary,
-    },
+  safeArea: {
+    backgroundColor: Colors.white,
+    ...Shadows.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.grey100,
+  },
+  container: {
+    padding: Spacing.base,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  detailItem: {
+    flex: 1,
+  },
+  totalItem: {
+    flex: 1.2,
+    alignItems: 'flex-end',
+  },
+  label: {
+    fontSize: 10,
+    color: Colors.grey500,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  value: {
+    fontSize: Typography.fontSizes.sm,
+    fontWeight: Typography.fontWeights.semibold,
+    color: Colors.dark,
+  },
+  discountValue: {
+    color: Colors.success,
+  },
+  totalLabel: {
+    fontSize: 10,
+    color: Colors.grey500,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  totalValue: {
+    fontSize: Typography.fontSizes.lg,
+    fontWeight: Typography.fontWeights.bold,
+    color: Colors.primary,
+  },
+  button: {
+    width: '100%',
+  },
 });

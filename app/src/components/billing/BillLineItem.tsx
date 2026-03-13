@@ -1,114 +1,135 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Swipeable } from 'react-native-gesture-handler';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { formatCurrency } from '../../utils/format';
 import { BillItem } from '../../types/billing.types';
 
 interface BillLineItemProps {
-    item: BillItem;
-    onQuantityChange: (qty: number) => void;
-    onRemove: () => void;
+  item: BillItem;
+  onQuantityChange: (productId: string, quantity: number) => void;
+  onRemove: (productId: string) => void;
 }
 
 export const BillLineItem: React.FC<BillLineItemProps> = ({
-    item,
-    onQuantityChange,
-    onRemove,
+  item,
+  onQuantityChange,
+  onRemove,
 }) => {
-    const renderRightActions = () => (
-        <TouchableOpacity style={styles.deleteAction} onPress={onRemove}>
-            <MaterialCommunityIcons name="trash-can-outline" size={24} color={Colors.white} />
+  return (
+    <View style={styles.container}>
+      <View style={styles.topRow}>
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.unitPrice}>
+            {formatCurrency(item.unitPrice)} per unit
+          </Text>
+        </View>
+        <Text style={styles.lineTotal}>
+          {formatCurrency(item.unitPrice * item.quantity)}
+        </Text>
+      </View>
+      
+      <View style={styles.bottomRow}>
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity 
+            style={styles.qtyBtn} 
+            onPress={() => item.quantity > 1 ? onQuantityChange(item.productId, item.quantity - 1) : onRemove(item.productId)}
+          >
+            <MaterialCommunityIcons 
+              name={item.quantity > 1 ? "minus" : "trash-can-outline"} 
+              size={20} 
+              color={item.quantity > 1 ? Colors.grey600 : Colors.error} 
+            />
+          </TouchableOpacity>
+          
+          <View style={styles.qtyDisplay}>
+            <Text style={styles.qtyText}>{item.quantity}</Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.qtyBtn}
+            onPress={() => onQuantityChange(item.productId, item.quantity + 1)}
+          >
+            <MaterialCommunityIcons name="plus" size={20} color={Colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={() => onRemove(item.productId)} style={styles.removeBtn}>
+          <Text style={styles.removeText}>Remove</Text>
         </TouchableOpacity>
-    );
-
-    return (
-        <Swipeable renderRightActions={renderRightActions}>
-            <View style={styles.container}>
-                <View style={styles.info}>
-                    <Text style={styles.name}>{item.productName}</Text>
-                    <Text style={styles.price}>₹{item.unitPrice} / unit</Text>
-                </View>
-
-                <View style={styles.rightSection}>
-                    <View style={styles.quantityContainer}>
-                        <TouchableOpacity
-                            style={styles.qtyBtn}
-                            onPress={() => item.quantity > 1 ? onQuantityChange(item.quantity - 1) : onRemove()}
-                        >
-                            <MaterialCommunityIcons
-                                name={item.quantity > 1 ? "minus" : "trash-can-outline"}
-                                size={18}
-                                color={Colors.primary}
-                            />
-                        </TouchableOpacity>
-                        <Text style={styles.qtyText}>{item.quantity}</Text>
-                        <TouchableOpacity
-                            style={styles.qtyBtn}
-                            onPress={() => onQuantityChange(item.quantity + 1)}
-                        >
-                            <MaterialCommunityIcons name="plus" size={18} color={Colors.primary} />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={styles.totalText}>₹{item.unitPrice * item.quantity}</Text>
-                </View>
-            </View>
-        </Swipeable>
-    );
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: Spacing.md,
-        backgroundColor: Colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.grey100,
-    },
-    info: {
-        flex: 1,
-    },
-    name: {
-        fontSize: Typography.fontSizes.base,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.dark,
-    },
-    price: {
-        fontSize: Typography.fontSizes.sm,
-        color: Colors.grey500,
-    },
-    rightSection: {
-        alignItems: 'flex-end',
-    },
-    quantityContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.grey100,
-        borderRadius: BorderRadius.sm,
-        padding: 2,
-        marginBottom: Spacing.xs,
-    },
-    qtyBtn: {
-        padding: Spacing.xs,
-    },
-    qtyText: {
-        fontSize: Typography.fontSizes.base,
-        fontWeight: Typography.fontWeights.bold,
-        marginHorizontal: Spacing.md,
-        minWidth: 20,
-        textAlign: 'center',
-    },
-    totalText: {
-        fontSize: Typography.fontSizes.base,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.primary,
-    },
-    deleteAction: {
-        backgroundColor: Colors.error,
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: 80,
-    },
+  container: {
+    backgroundColor: Colors.white,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.grey100,
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  info: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  name: {
+    fontSize: Typography.fontSizes.base,
+    fontWeight: Typography.fontWeights.bold,
+    color: Colors.dark,
+  },
+  unitPrice: {
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.grey500,
+    marginTop: 2,
+  },
+  lineTotal: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.fontWeights.bold,
+    color: Colors.primary,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.grey100,
+    borderRadius: BorderRadius.sm,
+    padding: 2,
+  },
+  qtyBtn: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qtyDisplay: {
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  qtyText: {
+    fontSize: Typography.fontSizes.md,
+    fontWeight: Typography.fontWeights.bold,
+    color: Colors.dark,
+  },
+  removeBtn: {
+    paddingVertical: 4,
+  },
+  removeText: {
+    fontSize: Typography.fontSizes.sm,
+    color: Colors.error,
+    fontWeight: Typography.fontWeights.medium,
+  },
 });

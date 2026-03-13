@@ -1,36 +1,32 @@
-import { vehiclesApi } from '../api/vehicles.api';
 import { storage } from './storage';
+import { vehiclesApi } from '../api/vehicles.api';
 
-export async function getCarData(): Promise<Record<string, string[]>> {
-    // Step 1: Check if fresh cache exists
+export const carDataCache = {
+  async getCarData(): Promise<Record<string, string[]>> {
     const isFresh = await storage.isCarDataFresh();
-    if (isFresh) {
-        const cached = await storage.getCarData();
-        if (cached) return cached;
+    const cachedData = await storage.getCarData();
+
+    if (isFresh && cachedData) {
+      return cachedData;
     }
 
-    // Step 2: Fetch from backend
     try {
-        const data = await vehiclesApi.getCarData();
-
-        // Step 3: Cache with timestamp
-        await storage.setCarData(data);
-
-        return data;
+      const freshData = await vehiclesApi.getCarData();
+      await storage.setCarData(freshData);
+      return freshData;
     } catch (error) {
-        console.error('Error fetching car data:', error);
-        // Return empty object as fallback or last known cache
-        const lastCache = await storage.getCarData();
-        return lastCache || {};
+      console.error('Failed to fetch car data:', error);
+      return cachedData || {};
     }
-}
+  },
 
-export async function getMakesArray(): Promise<string[]> {
-    const data = await getCarData();
+  async getMakesArray(): Promise<string[]> {
+    const data = await this.getCarData();
     return Object.keys(data).sort();
-}
+  },
 
-export async function getModelsForMake(make: string): Promise<string[]> {
-    const data = await getCarData();
+  async getModelsForMake(make: string): Promise<string[]> {
+    const data = await this.getCarData();
     return data[make] || [];
-}
+  },
+};

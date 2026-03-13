@@ -1,44 +1,33 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 
-export function useAppState(
-    onBackground: () => void,
-    onForeground: () => void,
-    lockAfterSeconds: number = 300
-) {
-    const appState = useRef(AppState.currentState);
-    const [appStateVisible, setAppStateVisible] = useState(appState.current);
-    const lastBackgroundTime = useRef<number | null>(null);
+export function useAppState(onForeground: () => void) {
+  const appState = useRef(AppState.currentState);
+  const backgroundTimestamp = useRef<number | null>(null);
 
-    useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-            if (
-                appState.current.match(/inactive|background/) &&
-                nextAppState === 'active'
-            ) {
-                // App has come to the foreground
-                if (lastBackgroundTime.current) {
-                    const elapsedSeconds = (Date.now() - lastBackgroundTime.current) / 1000;
-                    if (elapsedSeconds > lockAfterSeconds) {
-                        onForeground(); // Trigger lock if limit exceeded
-                    }
-                }
-            }
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        if (backgroundTimestamp.current) {
+          const fiveMinutes = 5 * 60 * 1000;
+          if (Date.now() - backgroundTimestamp.current > fiveMinutes) {
+            onForeground();
+          }
+        }
+        backgroundTimestamp.current = null;
+      }
 
-            if (nextAppState.match(/inactive|background/)) {
-                // App has gone to the background
-                lastBackgroundTime.current = Date.now();
-                onBackground();
-            }
+      if (nextAppState.match(/inactive|background/)) {
+        backgroundTimestamp.current = Date.now();
+      }
 
-            appState.current = nextAppState;
-            setAppStateVisible(appState.current);
-        });
+      appState.current = nextAppState;
+    };
 
-        return () => {
-            subscription.remove();
-        };
-    }, [onBackground, onForeground, lockAfterSeconds]);
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
 
-    return { appStateVisible };
+    return () => {
+      subscription.remove();
+    };
+  }, [onForeground]);
 }

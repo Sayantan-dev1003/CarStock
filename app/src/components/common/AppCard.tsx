@@ -1,49 +1,46 @@
-import React, { ReactNode } from 'react';
-import {
-    View,
-    TouchableOpacity,
-    StyleSheet,
-    ViewStyle,
-} from 'react-native';
-import { Colors, Spacing, BorderRadius, Shadows } from '../../constants/theme';
+import React from 'react';
+import { TouchableOpacity, View, StyleSheet, ViewStyle } from 'react-native';
+import { Colors, Shadows, BorderRadius, Spacing } from '../../constants/theme';
 
 interface AppCardProps {
-    children: ReactNode;
-    style?: ViewStyle;
-    onPress?: () => void;
-    shadow?: 'sm' | 'md' | 'lg';
-    padding?: number;
+  children: React.ReactNode;
+  onPress?: () => void;
+  variant?: 'elevated' | 'outlined';
+  style?: ViewStyle;
 }
 
 export const AppCard: React.FC<AppCardProps> = ({
-    children,
-    style,
-    onPress,
-    shadow = 'md',
-    padding = Spacing.md,
+  children,
+  onPress,
+  variant = 'elevated',
+  style,
 }) => {
-    const Container = onPress ? TouchableOpacity : View;
+  const Container = onPress ? TouchableOpacity : View;
 
-    return (
-        <Container
-            activeOpacity={onPress ? 0.7 : 1}
-            onPress={onPress}
-            style={[
-                styles.card,
-                Shadows[shadow],
-                { padding },
-                style,
-            ]}
-        >
-            {children}
-        </Container>
-    );
+  return (
+    <Container
+      activeOpacity={0.9}
+      onPress={onPress}
+      style={[
+        styles.card,
+        variant === 'elevated' ? Shadows.md : styles.outlined,
+        style,
+      ]}
+    >
+      {children}
+    </Container>
+  );
 };
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: Colors.white,
-        borderRadius: BorderRadius.lg,
-        marginVertical: Spacing.xs,
-    },
+  card: {
+    backgroundColor: Colors.cardBg,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginVertical: Spacing.xs,
+  },
+  outlined: {
+    borderWidth: 1,
+    borderColor: Colors.grey200,
+  },
 });
