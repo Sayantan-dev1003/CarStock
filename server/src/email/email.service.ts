@@ -1,6 +1,6 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 import { buildBillEmailHtml } from './templates/bill.template';
 import { buildReminderEmailHtml } from './templates/reminder.template';
 import { buildLowStockEmailHtml } from './templates/low-stock.template';
@@ -8,135 +8,168 @@ import { buildReportEmailHtml } from './templates/report.template';
 
 @Injectable()
 export class EmailService {
-    private readonly logger = new Logger(EmailService.name);
+  private readonly logger = new Logger(EmailService.name);
+  private readonly resend: Resend;
+  private readonly fromEmail = 'onboarding@resend.dev';
 
-    constructor(private configService: ConfigService) {
-        const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
-        if (!apiKey) {
-            this.logger.error('SENDGRID_API_KEY is not defined in environment variables');
-        } else {
-            sgMail.setApiKey(apiKey);
-        }
+  constructor(private configService: ConfigService) {
+    const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
+
+    if (!resendApiKey) {
+      this.logger.error('RESEND_API_KEY is not set in .env');
+    } else {
+      this.logger.log(
+        `Resend initialized with key: ${resendApiKey.substring(0, 8)}...`
+      );
     }
 
-    async sendBill(data: {
-        toEmail: string;
-        customerName: string;
-        billNumber: string;
-        billDate: string;
-        shopName: string;
-        items: Array<{
-            productName: string;
-            quantity: number;
-            unitPrice: number;
-            total: number;
-        }>;
-        subtotal: number;
-        discount: number;
-        cgst: number;
-        sgst: number;
-        total: number;
-        paymentMode: string;
-        pdfUrl: string;
-    }): Promise<void> {
-        const html = buildBillEmailHtml(data);
-        const fromEmail = this.configService.get<string>('SENDGRID_FROM_EMAIL') || 'billing@mail.yourshop.com';
+    this.resend = new Resend(resendApiKey);
+  }
 
-        try {
-            await sgMail.send({
-                to: data.toEmail,
-                from: fromEmail,
-                subject: `Your Invoice from ${data.shopName} - Bill #${data.billNumber}`,
-                html: html,
-            });
-            this.logger.log(`Bill email sent to ${data.toEmail} for bill ${data.billNumber}`);
-        } catch (error) {
-            this.logger.error(`Failed to send bill email to ${data.toEmail}: ${error.message}`);
-            throw new InternalServerErrorException('Failed to send bill email');
-        }
+  async sendBill(data: {
+    toEmail: string;
+    customerName: string;
+    billNumber: string;
+    billDate: string;
+    shopName: string;
+    items: Array<{
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>;
+    subtotal: number;
+    discount: number;
+    cgst: number;
+    sgst: number;
+    total: number;
+    paymentMode: string;
+    pdfUrl: string;
+  }): Promise<void> {
+    try {
+      this.logger.log(`Attempting to send bill email to ${data.toEmail}`);
+      const html = buildBillEmailHtml(data);
+      const subject = `Your Invoice from ${data.shopName} - Bill #${data.billNumber}`;
+
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.toEmail,
+        subject,
+        html,
+      });
+
+      this.logger.log(
+        `Bill email sent to ${data.toEmail} — ID: ${result.data?.id}`
+      );
+    } catch (error) {
+      this.logger.error(
+        `Bill email failed for ${data.toEmail}: ${JSON.stringify(error)}`
+      );
     }
+  }
 
-    async sendServiceReminder(data: {
-        toEmail: string;
-        customerName: string;
-        vehicleMake: string;
-        vehicleModel: string;
-        vehicleYear: number;
-        productCategory: string;
-        lastPurchaseDate: string;
-        shopName: string;
-        shopPhone: string;
-    }): Promise<void> {
-        const html = buildReminderEmailHtml(data);
-        const fromEmail = this.configService.get<string>('SENDGRID_FROM_EMAIL') || 'billing@mail.yourshop.com';
+  async sendServiceReminder(data: {
+    toEmail: string;
+    customerName: string;
+    vehicleMake: string;
+    vehicleModel: string;
+    vehicleYear: number;
+    productCategory: string;
+    lastPurchaseDate: string;
+    shopName: string;
+    shopPhone: string;
+  }): Promise<void> {
+    try {
+      this.logger.log(
+        `Attempting to send reminder email to ${data.toEmail}`
+      );
+      const html = buildReminderEmailHtml(data);
+      const subject = `Service Reminder for your ${data.vehicleYear} ${data.vehicleMake} ${data.vehicleModel}`;
 
-        try {
-            await sgMail.send({
-                to: data.toEmail,
-                from: fromEmail,
-                subject: `Service Reminder for your ${data.vehicleYear} ${data.vehicleMake} ${data.vehicleModel}`,
-                html: html,
-            });
-            this.logger.log(`Service reminder email sent to ${data.toEmail}`);
-        } catch (error) {
-            this.logger.error(`Failed to send service reminder email to ${data.toEmail}: ${error.message}`);
-            throw new InternalServerErrorException('Failed to send service reminder email');
-        }
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.toEmail,
+        subject,
+        html,
+      });
+
+      this.logger.log(
+        `Reminder email sent to ${data.toEmail} — ID: ${result.data?.id}`
+      );
+    } catch (error) {
+      this.logger.error(
+        `Reminder email failed for ${data.toEmail}: ${JSON.stringify(error)}`
+      );
     }
+  }
 
-    async sendLowStockAlert(data: {
-        toEmail: string;
-        shopName: string;
-        products: Array<{
-            name: string;
-            category: string;
-            currentQuantity: number;
-            reorderLevel: number;
-        }>;
-        generatedAt: string;
-    }): Promise<void> {
-        const html = buildLowStockEmailHtml(data);
-        const fromEmail = this.configService.get<string>('SENDGRID_FROM_EMAIL') || 'billing@mail.yourshop.com';
+  async sendLowStockAlert(data: {
+    toEmail: string;
+    shopName: string;
+    products: Array<{
+      name: string;
+      category: string;
+      currentQuantity: number;
+      reorderLevel: number;
+    }>;
+    generatedAt: string;
+  }): Promise<void> {
+    try {
+      this.logger.log(
+        `Attempting to send low stock alert to ${data.toEmail}`
+      );
+      const html = buildLowStockEmailHtml(data);
+      const subject = `Low Stock Alert - ${data.products.length} item(s) need restocking`;
 
-        try {
-            await sgMail.send({
-                to: data.toEmail,
-                from: fromEmail,
-                subject: `Low Stock Alert - ${data.products.length} item(s) need restocking`,
-                html: html,
-            });
-            this.logger.log(`Low stock alert email sent to admin: ${data.toEmail}`);
-        } catch (error) {
-            this.logger.error(`Failed to send low stock alert email: ${error.message}`);
-            throw new InternalServerErrorException('Failed to send low stock alert email');
-        }
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.toEmail,
+        subject,
+        html,
+      });
+
+      this.logger.log(
+        `Low stock email sent to ${data.toEmail} — ID: ${result.data?.id}`
+      );
+    } catch (error) {
+      this.logger.error(
+        `Low stock email failed for ${data.toEmail}: ${JSON.stringify(error)}`
+      );
     }
+  }
 
-    async sendReport(data: {
-        toEmail: string;
-        reportType: 'Daily' | 'Weekly' | 'Monthly';
-        period: string;
-        shopName: string;
-        totalRevenue: number;
-        totalBills: number;
-        newCustomers: number;
-        topProduct: string;
-        pdfUrl: string;
-    }): Promise<void> {
-        const html = buildReportEmailHtml(data);
-        const fromEmail = this.configService.get<string>('SENDGRID_FROM_EMAIL') || 'billing@mail.yourshop.com';
+  async sendReport(data: {
+    toEmail: string;
+    reportType: 'Daily' | 'Weekly' | 'Monthly';
+    period: string;
+    shopName: string;
+    totalRevenue: number;
+    totalBills: number;
+    newCustomers: number;
+    topProduct: string;
+    pdfUrl: string;
+  }): Promise<void> {
+    try {
+      this.logger.log(
+        `Attempting to send report email to ${data.toEmail}`
+      );
+      const html = buildReportEmailHtml(data);
+      const subject = `${data.reportType} Report - ${data.shopName} - ${data.period}`;
 
-        try {
-            await sgMail.send({
-                to: data.toEmail,
-                from: fromEmail,
-                subject: `${data.reportType} Report - ${data.shopName} - ${data.period}`,
-                html: html,
-            });
-            this.logger.log(`${data.reportType} report email sent to ${data.toEmail}`);
-        } catch (error) {
-            this.logger.error(`Failed to send report email: ${error.message}`);
-            throw new InternalServerErrorException('Failed to send report email');
-        }
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: data.toEmail,
+        subject,
+        html,
+      });
+
+      this.logger.log(
+        `Report email sent to ${data.toEmail} — ID: ${result.data?.id}`
+      );
+    } catch (error) {
+      this.logger.error(
+        `Report email failed for ${data.toEmail}: ${JSON.stringify(error)}`
+      );
     }
+  }
 }

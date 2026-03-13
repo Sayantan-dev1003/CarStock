@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { InventoryGateway } from '../gateways/inventory.gateway';
 import { InventoryService } from '../inventory/inventory.service';
 import { BillPdfService } from './bill-pdf.service';
+import { EmailService } from '../email/email.service';
 import { CreateBillDto } from './dto/create-bill.dto';
 import { BillItemDto } from './dto/bill-item.dto';
 import { Prisma, Product } from '@prisma/client';
@@ -15,7 +16,8 @@ export class BillingService {
     private readonly prisma: PrismaService,
     private readonly inventoryGateway: InventoryGateway,
     private readonly inventoryService: InventoryService,
-    private readonly billPdfService: BillPdfService
+    private readonly billPdfService: BillPdfService,
+    private readonly emailService: EmailService
   ) {}
 
   private generateBillNumber(): string {
@@ -43,7 +45,7 @@ export class BillingService {
     let billWithRelations: any;
     let originalProductsArray: Product[] = [];
 
-    const result = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const bill = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Part 1: Validate all items before touching stock
       const products: Product[] = [];
       for (const item of dto.items) {
@@ -132,6 +134,8 @@ export class BillingService {
       return createdBill;
     }, { timeout: 15000 });
 
+    const createdBillItems = bill.items;
+
     // OUTSIDE the transaction (after it resolves):
     for (let i = 0; i < dto.items.length; i++) {
         const item = dto.items[i];
@@ -140,21 +144,66 @@ export class BillingService {
         
         this.inventoryGateway.emitStockUpdate(item.productId, product.name, newQuantity, 'DEDUCT');
         
-        const isLow = await this.inventoryService.checkAndAlertLowStock(item.productId, product.name, newQuantity, product.reorderLevel);
+        const isLow = await this.inventoryService.checkAndAlertLowStock(item.productId, product.name, product.category, newQuantity, product.reorderLevel);
         if (isLow) {
            this.inventoryGateway.emitLowStockAlert(item.productId, product.name, newQuantity, product.reorderLevel);
         }
     }
 
-    this.inventoryGateway.emitBillCreated(result.id, result.billNumber, result.customer.name, result.total);
+    this.inventoryGateway.emitBillCreated(bill.id, bill.billNumber, bill.customer.name, bill.total);
 
-    this.logger.log(`Bill ${result.billNumber} created for customer ${result.customer.name}, total: ${result.total}`);
+    this.logger.log(`Bill ${bill.billNumber} created for customer ${bill.customer.name}, total: ${bill.total}`);
 
-    // TODO Stage 9: Generate PDF and upload to S3
-    // TODO Stage 10: Send email
+    // Cloudinary permanent URL
+    // Stage 10 — email
+    try {
+      const customer = await this.prisma.customer
+        .findUnique({ where: { id: bill.customerId } })
+      const admin = await this.prisma.admin.findFirst()
+
+      if (customer && admin) {
+        await this.emailService.sendBill({
+          toEmail: customer.email,
+          customerName: customer.name,
+          billNumber: bill.billNumber,
+          billDate: bill.createdAt.toISOString(),
+          shopName: admin.shopName,
+          items: createdBillItems.map(item => ({
+            productName: item.product?.name ?? 'Product',
+            quantity: item.quantity,
+            unitPrice: Number(item.unitPrice),
+            total: Number(item.total),
+          })),
+          subtotal: Number(bill.subtotal),
+          discount: Number(bill.discount),
+          cgst: Number(bill.cgst),
+          sgst: Number(bill.sgst),
+          total: Number(bill.total),
+          paymentMode: bill.paymentMode,
+          pdfUrl: bill.pdfUrl ?? '',
+        })
+
+        await this.prisma.bill.update({
+          where: { id: bill.id },
+          data: { emailSent: true },
+        })
+
+        this.logger.log(
+          'emailSent updated to true for bill: ' 
+          + bill.billNumber
+        )
+      }
+    } catch (error) {
+      this.logger.error(
+        'Bill email failed: ' + error.message)
+    }
+
     // TODO Stage 11: Send WhatsApp
 
-    return result;
+    const updatedBill = await this.prisma.bill
+      .findUnique({ where: { id: bill.id } })
+
+    return updatedBill;
   }
 
   async getBill(id: string) {
