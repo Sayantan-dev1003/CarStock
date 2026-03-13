@@ -12,6 +12,7 @@ import { BillPdfService } from './bill-pdf.service';
 import { UploadService } from '../upload/upload.service';
 import { EmailService } from '../email/email.service';
 import { WhatsAppService } from '../whatsapp/whatsapp.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BillingService {
@@ -27,6 +28,7 @@ export class BillingService {
     private readonly uploadService: UploadService,
     private readonly emailService: EmailService,
     private readonly whatsappService: WhatsAppService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private generateBillNumber(): string {
@@ -253,8 +255,19 @@ export class BillingService {
         pdfUrl: pdfUrl ?? undefined,
       },
     });
+    
+    // Step 7 — Send Push Notification:
+    try {
+      await this.notificationsService.sendNewBillPush(
+        bill.billNumber,
+        customer?.name ?? 'Customer',
+        Number(bill.total),
+      );
+    } catch (error) {
+      this.logger.error('New bill push failed: ' + error.message);
+    }
 
-    // Step 7 — Return fresh bill with all updated fields:
+    // Step 8 — Return fresh bill with all updated fields:
     const finalBill = await this.prisma.bill.findUnique({
       where: { id: bill.id },
       include: {

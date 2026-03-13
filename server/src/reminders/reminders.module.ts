@@ -8,7 +8,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-    imports: [EmailModule, WhatsAppModule, NotificationsModule, PrismaModule],
+    imports: [EmailModule, WhatsAppModule, PrismaModule],
     controllers: [RemindersController],
     providers: [RemindersService, RemindersScheduler],
     exports: [RemindersService],

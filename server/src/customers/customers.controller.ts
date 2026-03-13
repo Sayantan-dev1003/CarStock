@@ -3,14 +3,18 @@ import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RemindersService } from '../reminders/reminders.service';
 
 @ApiTags('Customers')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @Controller('customers')
 export class CustomersController {
-  constructor(private readonly customersService: CustomersService) { }
+  constructor(
+    private readonly customersService: CustomersService,
+    private readonly remindersService: RemindersService,
+  ) { }
 
   @Get()
   async findAll(
@@ -44,5 +48,13 @@ export class CustomersController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
     return this.customersService.update(id, updateCustomerDto);
+  }
+
+  @Post(':id/send-reminder')
+  @ApiOperation({
+    summary: 'Send a service reminder to this customer from their profile screen',
+  })
+  async sendReminder(@Param('id') id: string) {
+    return this.remindersService.triggerManualReminder(id);
   }
 }

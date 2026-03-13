@@ -6,6 +6,7 @@ import { BillPdfService } from '../billing/bill-pdf.service';
 import { UploadService } from '../upload/upload.service';
 import { EmailService } from '../email/email.service';
 import { WhatsAppService } from '../whatsapp/whatsapp.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   BILL_DELIVERY_QUEUE,
   JOB_DELIVER_BILL,
@@ -22,6 +23,7 @@ export class BillDeliveryProcessor {
     private readonly uploadService: UploadService,
     private readonly emailService: EmailService,
     private readonly whatsappService: WhatsAppService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   @Process(JOB_DELIVER_BILL)
@@ -234,5 +236,16 @@ export class BillDeliveryProcessor {
     });
 
     this.logger.log(`Bill ${bill.billNumber} resent. Email: ${emailSent}, WhatsApp: ${whatsappSent}`);
+
+    // Stage 13: Send Push Notification for resend
+    try {
+      await this.notificationsService.sendNewBillPush(
+        bill.billNumber,
+        bill.customer?.name ?? 'Customer',
+        Number(bill.total),
+      );
+    } catch (error) {
+      this.logger.error('Resend bill push failed: ' + error.message);
+    }
   }
 }

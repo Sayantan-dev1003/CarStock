@@ -4,6 +4,7 @@ import { UpdateStockDto } from './dto/update-stock.dto';
 import { InventoryGateway } from '../gateways/inventory.gateway';
 import { EmailService } from '../email/email.service';
 import { WhatsAppService } from '../whatsapp/whatsapp.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InventoryService {
@@ -13,7 +14,8 @@ export class InventoryService {
     private readonly prisma: PrismaService,
     private readonly inventoryGateway: InventoryGateway,
     private readonly emailService: EmailService,
-    private readonly whatsappService: WhatsAppService
+    private readonly whatsappService: WhatsAppService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async addStock(dto: UpdateStockDto) {
@@ -152,6 +154,15 @@ export class InventoryService {
           }
         }
       });
+
+      // Stage 13: Send Low Stock Push Notification
+      try {
+        this.notificationsService.sendLowStockPush(productName, currentQuantity).catch((err) =>
+          this.logger.error(`Low stock push failed: ${err.message}`),
+        );
+      } catch (error) {
+        this.logger.error('Low stock push failed: ' + error.message);
+      }
 
       return true;
     }

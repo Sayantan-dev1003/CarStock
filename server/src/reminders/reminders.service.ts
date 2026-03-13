@@ -63,7 +63,7 @@ export class RemindersService {
             const isDue = dueDate.isSameOrBefore(today) && dueDate.isAfter(today.subtract(7, 'day'));
 
             if (isDue) {
-                // Step C: Check if already sent
+                // Step C: For each due log check if a reminder was already sent
                 const alreadySent = await this.prisma.reminderLog.findFirst({
                     where: {
                         purchaseLogId: log.id,
@@ -157,6 +157,8 @@ export class RemindersService {
                 whatsappSent,
             },
         });
+
+        this.logger.log(`Reminder logged for customer ${reminder.customerName}`);
     }
 
     async processAllDueReminders(): Promise<{
@@ -203,10 +205,15 @@ export class RemindersService {
         this.logger.log(`Reminder batch complete: ${JSON.stringify(summary)}`);
 
         if (summary.processed > 0) {
-            await this.notificationsService.sendPush({
-                title: '📨 Service Reminders Sent',
-                body: `${emailsSent} emails and ${whatsappsSent} WhatsApp messages sent to customers`,
-            });
+            try {
+                await this.notificationsService.sendPush({
+                    title: '📨 Service Reminders Sent',
+                    body: `${summary.emailsSent} emails and ${summary.whatsappsSent} WhatsApp messages sent to customers`,
+                    data: { type: 'SERVICE_REMINDER' },
+                });
+            } catch (error) {
+                this.logger.error(`Summary push failed: ${error.message}`);
+            }
         }
 
         return summary;
