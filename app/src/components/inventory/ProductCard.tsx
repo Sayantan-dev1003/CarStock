@@ -1,147 +1,131 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
-import { AppCard } from '../common/AppCard';
-import { AppButton } from '../common/AppButton';
-import { StockBadge } from './StockBadge';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../../constants/theme';
 import { formatCurrency } from '../../utils/format';
 import { Product } from '../../types/product.types';
 
 interface ProductCardProps {
   product: Product;
-  onAddStock: (product: Product) => void;
   onViewDetails: (product: Product) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
-  onAddStock,
   onViewDetails,
 }) => {
-  const isLowStock = product.quantity <= product.reorderLevel;
+  const isLowStock = product.quantity <= 10;
+  const isOutOfStock = product.quantity === 0;
+
+  const getStockColor = () => {
+    if (isOutOfStock) return theme.colors.error;
+    if (isLowStock) return theme.colors.warning;
+    return theme.colors.success;
+  };
 
   return (
-    <AppCard style={styles.card} onPress={() => onViewDetails(product)}>
-      <View style={styles.row}>
-        <View style={styles.info}>
-          <View style={styles.nameRow}>
-            <View style={[styles.categoryDot, { backgroundColor: getCategoryColor(product.category) }]} />
-            <Text style={styles.name} numberOfLines={1}>{product.name}</Text>
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => onViewDetails(product)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.imagePlaceholder}>
+        <Ionicons name="cube-outline" size={24} color={theme.colors.textMuted} />
+      </View>
+      
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.name} numberOfLines={1}>{product.name}</Text>
+          <View style={styles.categoryTag}>
+            <Text style={styles.categoryText}>{product.category}</Text>
           </View>
-          <Text style={styles.sku}>SKU: {product.sku} • {product.brand}</Text>
+        </View>
+
+        <View style={styles.detailsRow}>
+          <View style={styles.stockRow}>
+            <View style={[styles.stockDot, { backgroundColor: getStockColor() }]} />
+            <Text style={styles.stockText}>{product.quantity} in stock</Text>
+          </View>
           <Text style={styles.price}>{formatCurrency(product.sellingPrice)}</Text>
         </View>
-        
-        <View style={styles.stockInfo}>
-          <Text style={[
-            styles.quantity,
-            { color: product.quantity === 0 ? Colors.error : isLowStock ? Colors.warning : Colors.success }
-          ]}>
-            {product.quantity}
-          </Text>
-          <StockBadge quantity={product.quantity} reorderLevel={product.reorderLevel} />
-        </View>
       </View>
-
-      <View style={styles.footer}>
-        <AppButton 
-          title="Add Stock" 
-          variant="outline" 
-          size="sm" 
-          leftIcon="plus"
-          onPress={() => onAddStock(product)}
-          style={styles.actionButton}
-        />
-        <TouchableOpacity onPress={() => onViewDetails(product)} style={styles.viewLink}>
-          <Text style={styles.viewLinkText}>View Details</Text>
-          <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.primary} />
-        </TouchableOpacity>
-      </View>
-    </AppCard>
+    </TouchableOpacity>
   );
-};
-
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'TYRES': return '#3B82F6';
-    case 'BATTERIES': return '#F59E0B';
-    case 'BRAKES': return '#EF4444';
-    case 'OILS': return '#10B981';
-    case 'LIGHTING': return '#8B5CF6';
-    default: return Colors.grey400;
-  }
 };
 
 const styles = StyleSheet.create({
   card: {
-    marginVertical: Spacing.xs,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingBottom: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.grey100,
-  },
-  info: {
-    flex: 1,
-    marginRight: Spacing.md,
-  },
-  nameRow: {
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 12,
+    ...theme.shadow.card,
   },
-  categoryDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+  imagePlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.bgMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
   },
-  name: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+  content: {
     flex: 1,
-  },
-  sku: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
-    marginBottom: Spacing.xs,
-  },
-  price: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
-  },
-  stockInfo: {
-    alignItems: 'flex-end',
     justifyContent: 'center',
   },
-  quantity: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
-    marginBottom: 2,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
   },
-  footer: {
+  name: {
+    fontSize: 16,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
+    flex: 1,
+    marginRight: 8,
+  },
+  categoryTag: {
+    backgroundColor: theme.colors.bgMuted,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: theme.radius.sm,
+  },
+  categoryText: {
+    fontSize: 10,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  detailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.sm,
   },
-  actionButton: {
-    minHeight: 32,
-    paddingHorizontal: Spacing.md,
-  },
-  viewLink: {
+  stockRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  viewLinkText: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.primary,
-    fontWeight: Typography.fontWeights.medium,
-    marginRight: 2,
+  stockDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  stockText: {
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textSecondary,
+  },
+  price: {
+    fontSize: 18,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
+    letterSpacing: -0.5,
   },
 });

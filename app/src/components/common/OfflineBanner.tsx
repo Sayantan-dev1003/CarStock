@@ -6,7 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
-import { Colors, Typography, Spacing } from '../../constants/theme';
+import { theme } from '../../constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const OfflineBanner: React.FC = () => {
@@ -24,7 +24,7 @@ export const OfflineBanner: React.FC = () => {
   const animatedStyle = useAnimatedStyle(() => {
     return {
       top: isOffline.value ? 0 : -100,
-      paddingTop: insets.top + Spacing.xs,
+      paddingTop: insets.top + theme.spacing.xs,
     };
   });
 
@@ -40,14 +40,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    backgroundColor: Colors.error,
-    paddingBottom: Spacing.xs,
+    backgroundColor: theme.colors.error,
+    paddingBottom: theme.spacing.xs,
     alignItems: 'center',
     zIndex: 9999,
   },
   text: {
-    color: Colors.white,
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.semibold,
+    color: 'white',
+    fontSize: 13,
+    fontFamily: theme.font.body,
+    fontWeight: '600',
   },
 });

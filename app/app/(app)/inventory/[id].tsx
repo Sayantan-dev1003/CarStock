@@ -12,13 +12,14 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { productsApi } from '../../../src/api/products.api';
 import { inventoryApi } from '../../../src/api/inventory.api';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { StockBadge } from '../../../src/components/inventory/StockBadge';
 import { formatCurrency, formatDate } from '../../../src/utils/format';
 import { AppButton } from '../../../src/components/common/AppButton';
+import { AppHeader } from '../../../src/components/common/AppHeader';
 import { StockLog } from '../../../src/types/product.types';
 
 export default function ProductDetailScreen() {
@@ -53,6 +54,7 @@ export default function ProductDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AppHeader title="Product Details" showBackButton />
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
         {/* Header Section */}
         <View style={styles.header}>
@@ -61,8 +63,8 @@ export default function ProductDetailScreen() {
               <Text style={styles.skuText}>{product.sku}</Text>
               <Text style={styles.nameText}>{product.name}</Text>
             </View>
-            <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-              <MaterialCommunityIcons name="share-variant-outline" size={22} color={Colors.primary} />
+            <TouchableOpacity style={styles.shareButton} onPress={handleShare} activeOpacity={0.7}>
+              <MaterialCommunityIcons name="share-variant-outline" size={20} color={theme.colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -88,7 +90,7 @@ export default function ProductDetailScreen() {
 
         {/* Details Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Product Details</Text>
+          <Text style={styles.sectionTitle}>Product Information</Text>
           <View style={styles.detailsGrid}>
             <View style={styles.detailBox}>
               <Text style={styles.detailLabel}>Brand</Text>
@@ -110,40 +112,40 @@ export default function ProductDetailScreen() {
         {/* History Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Stock Movement History</Text>
-            <MaterialCommunityIcons name="history" size={20} color={Colors.grey400} />
+            <Text style={styles.sectionTitle}>Stock Movement</Text>
+            <MaterialCommunityIcons name="history" size={18} color={theme.colors.textMuted} />
           </View>
 
           {isHistoryLoading ? (
-            <ActivityIndicator color={Colors.primary} style={{ margin: Spacing.xl }} />
+            <ActivityIndicator color={theme.colors.primary} style={{ margin: 40 }} />
           ) : history?.data && history.data.length > 0 ? (
             <View style={styles.historyContainer}>
               {history.data.map((log: StockLog) => (
                 <View key={log.id} style={styles.historyRow}>
                   <View style={[
                     styles.logIcon,
-                    { backgroundColor: log.type === 'ADDITION' ? Colors.successLight : Colors.errorLight }
+                    { backgroundColor: log.type === 'ADD' ? theme.colors.success + '15' : theme.colors.error + '15' }
                   ]}>
                     <MaterialCommunityIcons 
-                      name={log.type === 'ADDITION' ? 'plus' : 'cart-outline'} 
+                      name={log.type === 'ADD' ? 'plus' : 'cart-outline'} 
                       size={18} 
-                      color={log.type === 'ADDITION' ? Colors.success : Colors.error} 
+                      color={log.type === 'ADD' ? theme.colors.success : theme.colors.error} 
                     />
                   </View>
                   <View style={styles.logInfo}>
                     <View style={styles.logTop}>
                       <Text style={styles.logTitle}>
-                        {log.type === 'ADDITION' ? 'Stock Added' : 'Stock Sold'}
+                        {log.type === 'ADD' ? 'Stock Added' : 'Stock Sold'}
                       </Text>
                       <Text style={[
                         styles.logQty,
-                        { color: log.type === 'ADDITION' ? Colors.success : Colors.error }
+                        { color: log.type === 'ADD' ? theme.colors.success : theme.colors.error }
                       ]}>
-                        {log.type === 'ADDITION' ? '+' : '-'}{log.quantity}
+                        {log.type === 'ADD' ? '+' : '-'}{log.quantity}
                       </Text>
                     </View>
                     <View style={styles.logBottom}>
-                      <Text style={styles.logNote}>{log.note || (log.type === 'ADDITION' ? 'Manual inventory update' : 'Sold via bill')}</Text>
+                      <Text style={styles.logNote} numberOfLines={1}>{log.note || (log.type === 'ADD' ? 'Manual inventory update' : 'Sold via bill')}</Text>
                       <Text style={styles.logDate}>{formatDate(log.createdAt)}</Text>
                     </View>
                   </View>
@@ -159,7 +161,7 @@ export default function ProductDetailScreen() {
 
         <View style={styles.bottomButtons}>
           <AppButton
-            title="Edit Product"
+            title="Edit Product Details"
             onPress={() => router.push({
               pathname: '/(app)/inventory/add-product',
               params: { id: product.id }
@@ -177,70 +179,71 @@ export default function ProductDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: Spacing.xxl,
+    paddingBottom: 40,
   },
   header: {
-    backgroundColor: Colors.white,
-    padding: Spacing.xl,
+    backgroundColor: theme.colors.bgCard,
+    padding: 24,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
-    ...Shadows.md,
+    ...theme.shadow.card,
   },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
   skuText: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 12,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.primary,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   nameText: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-    marginTop: 2,
+    fontSize: 24,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+    marginTop: 4,
   },
   shareButton: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.offWhite,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: theme.colors.bgMuted,
     justifyContent: 'center',
     alignItems: 'center',
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: 24,
   },
   categoryBadge: {
-    backgroundColor: Colors.grey100,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginLeft: Spacing.sm,
+    backgroundColor: theme.colors.bgMuted,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginLeft: 12,
   },
   categoryText: {
     fontSize: 10,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.grey600,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textSecondary,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   pricingCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.dark,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    ...Shadows.lg,
+    backgroundColor: theme.colors.textPrimary, // Dark theme for card
+    borderRadius: theme.radius.lg,
+    padding: 20,
+    ...theme.shadow.lg,
   },
   priceItem: {
     flex: 1,
@@ -248,89 +251,95 @@ const styles = StyleSheet.create({
   },
   vDivider: {
     width: 1,
-    backgroundColor: '#3F3F5F',
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   priceLabel: {
     fontSize: 10,
-    color: Colors.grey400,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textMuted,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 0.5,
   },
   priceValue: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.white,
+    fontSize: 18,
+    fontFamily: theme.font.heading,
+    color: theme.colors.bgCard,
   },
   section: {
-    marginTop: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
+    marginTop: 32,
+    paddingHorizontal: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-    marginBottom: Spacing.sm,
+    fontSize: 14,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
   },
   detailsGrid: {
     flexDirection: 'row',
-    backgroundColor: Colors.white,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    ...Shadows.sm,
+    backgroundColor: theme.colors.bgCard,
+    padding: 20,
+    borderRadius: theme.radius.lg,
+    ...theme.shadow.sm,
   },
   detailBox: {
     flex: 1,
   },
   detailLabel: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   detailValue: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.semibold,
-    color: Colors.dark,
+    fontSize: 15,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
   descriptionBox: {
-    marginTop: Spacing.md,
-    backgroundColor: Colors.white,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    ...Shadows.sm,
+    marginTop: 16,
+    backgroundColor: theme.colors.bgCard,
+    padding: 20,
+    borderRadius: theme.radius.lg,
+    ...theme.shadow.sm,
   },
   descriptionText: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey600,
-    lineHeight: 20,
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    lineHeight: 22,
   },
   historyContainer: {
-    backgroundColor: Colors.white,
-    borderRadius: BorderRadius.lg,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.lg,
     overflow: 'hidden',
-    ...Shadows.sm,
+    ...theme.shadow.sm,
   },
   historyRow: {
     flexDirection: 'row',
-    padding: Spacing.md,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.grey100,
+    borderBottomColor: theme.colors.bgMuted,
   },
   logIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logInfo: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: 16,
   },
   logTop: {
     flexDirection: 'row',
@@ -338,45 +347,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logTitle: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 14,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
   },
   logQty: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.bold,
+    fontSize: 14,
+    fontFamily: theme.font.bodyBold,
   },
   logBottom: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 4,
+    alignItems: 'center',
   },
   logNote: {
-    fontSize: 10,
-    color: Colors.grey500,
+    fontSize: 11,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     flex: 1,
-    marginRight: Spacing.md,
+    marginRight: 12,
   },
   logDate: {
     fontSize: 10,
-    color: Colors.grey400,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
   },
   emptyLogs: {
-    backgroundColor: Colors.white,
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
+    backgroundColor: theme.colors.bgCard,
+    padding: 32,
+    borderRadius: theme.radius.lg,
     alignItems: 'center',
-    ...Shadows.sm,
+    ...theme.shadow.sm,
   },
   emptyLogsText: {
-    color: Colors.grey400,
-    fontSize: Typography.fontSizes.sm,
+    color: theme.colors.textMuted,
+    fontSize: 14,
+    fontFamily: theme.font.body,
   },
   bottomButtons: {
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.xxl,
+    paddingHorizontal: 24,
+    marginTop: 40,
   },
   editBtn: {
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
 });

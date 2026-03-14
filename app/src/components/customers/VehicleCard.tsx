@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { theme } from '../../constants/theme';
 import { AppCard } from '../common/AppCard';
 import { Vehicle } from '../../types/customer.types';
 
@@ -31,12 +31,12 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           <MaterialCommunityIcons 
             name="car" 
             size={24} 
-            color={selected ? Colors.primary : Colors.grey500} 
+            color={selected ? theme.colors.primary : theme.colors.textMuted} 
           />
         </View>
         {onDelete && (
           <TouchableOpacity onPress={() => onDelete(vehicle.id)} style={styles.deleteBtn}>
-            <MaterialCommunityIcons name="trash-can-outline" size={20} color={Colors.error} />
+            <MaterialCommunityIcons name="trash-can-outline" size={20} color={theme.colors.error} />
           </TouchableOpacity>
         )}
       </View>
@@ -55,7 +55,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
       
       {selected && (
         <View style={styles.selectedBadge}>
-          <MaterialCommunityIcons name="check-circle" size={20} color={Colors.primary} />
+          <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.primary} />
         </View>
       )}
     </AppCard>
@@ -65,26 +65,26 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     width: 160,
-    marginRight: Spacing.sm,
-    padding: Spacing.sm,
-    borderWidth: 2,
+    marginRight: theme.spacing.md,
+    padding: theme.spacing.md,
+    borderWidth: 1.5,
     borderColor: 'transparent',
   },
   selectedCard: {
-    borderColor: Colors.primary,
-    backgroundColor: '#FFF1F2',
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.xs,
+    marginBottom: theme.spacing.sm,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.offWhite,
+    width: 44,
+    height: 44,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.bgMuted,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -92,39 +92,43 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   content: {
-    marginTop: Spacing.xs,
+    marginTop: theme.spacing.xs,
   },
   model: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 15,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
   },
   selectedText: {
-    color: Colors.primary,
+    color: theme.colors.primary,
   },
   details: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   regBadge: {
-    backgroundColor: Colors.grey100,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: Spacing.sm,
+    backgroundColor: theme.colors.bgMuted,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: theme.radius.sm,
+    marginTop: theme.spacing.md,
     alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   regText: {
     fontSize: 10,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.grey600,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
+    letterSpacing: 0.5,
   },
   selectedBadge: {
     position: 'absolute',
-    top: -10,
-    right: -10,
-    backgroundColor: Colors.white,
+    top: -8,
+    right: -8,
+    backgroundColor: theme.colors.bgCard,
     borderRadius: 10,
   },
 });

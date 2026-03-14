@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -6,37 +6,32 @@ import {
   FlatList, 
   TouchableOpacity, 
   RefreshControl,
-  SafeAreaView,
   TextInput,
-  ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Modal, Portal, Provider } from 'react-native-paper';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { productsApi } from '../../../src/api/products.api';
-import { inventoryApi } from '../../../src/api/inventory.api';
 import { ProductCard } from '../../../src/components/inventory/ProductCard';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { EmptyState } from '../../../src/components/common/EmptyState';
-import { AppInput } from '../../../src/components/common/AppInput';
-import { AppButton } from '../../../src/components/common/AppButton';
-import { Product, ProductCategory } from '../../../src/types/product.types';
+import { ProductCategory } from '../../../src/types/product.types';
 
 const CATEGORIES: (ProductCategory | 'ALL' | 'LOW_STOCK')[] = [
   'ALL', 'LOW_STOCK', 'TYRES', 'BATTERIES', 'WIPERS', 'BRAKES', 'SEAT_COVERS', 'LIGHTING', 'AUDIO', 'OILS', 'ELECTRICAL', 'OTHER'
 ];
 
+import { AppHeader } from '../../../src/components/common/AppHeader';
+
 export default function InventoryScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
+  const TAB_BAR_HEIGHT = 64;
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'ALL' | 'LOW_STOCK'>('ALL');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [addStockQty, setAddStockQty] = useState('');
-  const [addStockNote, setAddStockNote] = useState('');
 
   const { 
     data: products, 
@@ -54,23 +49,6 @@ export default function InventoryScreen() {
     },
   });
 
-  const { data: summary } = useQuery({
-    queryKey: ['inventory-summary'],
-    queryFn: () => inventoryApi.getInventorySummary(),
-  });
-
-  const addStockMutation = useMutation({
-    mutationFn: (data: { productId: string; quantity: number; note?: string }) => 
-      inventoryApi.addStock(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
-      setSelectedProduct(null);
-      setAddStockQty('');
-      setAddStockNote('');
-    },
-  });
-
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     return products.filter((p: any) => 
@@ -79,69 +57,66 @@ export default function InventoryScreen() {
     );
   }, [products, search]);
 
-  const handleAddStock = () => {
-    if (!selectedProduct || !addStockQty) return;
-    addStockMutation.mutate({
-      productId: selectedProduct.id,
-      quantity: parseInt(addStockQty),
-      note: addStockNote || undefined
-    });
-  };
+  const lowStockCount = useMemo(() => {
+    if (!products) return 0;
+    return products.filter((p: any) => p.quantity <= 10).length;
+  }, [products]);
 
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <AppInput
-          placeholder="Search inventory..."
-          value={search}
-          onChangeText={setSearch}
-          leftIcon="magnify"
-          containerStyle={styles.searchBar}
-        />
+    <SafeAreaView style={styles.safeArea}>
+      <AppHeader title="Inventory" />
+      <View style={styles.searchSection}>
+        
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
+          <TextInput
+            placeholder="Search products..."
+            placeholderTextColor={theme.colors.textMuted}
+            value={search}
+            onChangeText={setSearch}
+            style={styles.searchInput}
+          />
+        </View>
+
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
           style={styles.filterBar}
           contentContainerStyle={styles.filterContent}
         >
-          {CATEGORIES.map((cat) => (
-            <TouchableOpacity
-              key={cat}
-              style={[
-                styles.filterChip,
-                selectedCategory === cat && styles.activeFilterChip
-              ]}
-              onPress={() => setSelectedCategory(cat)}
-            >
-              <Text style={[
-                styles.filterChipText,
-                selectedCategory === cat && styles.activeFilterChipText
-              ]}>
-                {cat.replace(/_/g, ' ')}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const isActive = selectedCategory === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.filterPill,
+                  isActive ? styles.activeFilterPill : styles.inactiveFilterPill
+                ]}
+                onPress={() => setSelectedCategory(cat)}
+              >
+                <Text style={[
+                  styles.filterText,
+                  isActive ? styles.activeFilterText : styles.inactiveFilterText
+                ]}>
+                  {cat.replace(/_/g, ' ')}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{summary?.totalProducts || 0}</Text>
-          <Text style={styles.summaryLabel}>Total Products</Text>
+      {lowStockCount > 0 && (
+        <View style={styles.lowStockBanner}>
+          <Ionicons name="warning-outline" size={18} color={theme.colors.primary} />
+          <Text style={styles.lowStockText}>
+            You have {lowStockCount} items with low stock level.
+          </Text>
         </View>
-        <View style={styles.summaryDivider} />
-        <View style={styles.summaryItem}>
-          <Text style={[styles.summaryValue, { color: Colors.warning }]}>{summary?.lowStockCount || 0}</Text>
-          <Text style={styles.summaryLabel}>Low Stock</Text>
-        </View>
-        <View style={styles.summaryDivider} />
-        <View style={styles.summaryItem}>
-          <Text style={[styles.summaryValue, { color: Colors.error }]}>{summary?.outOfStockCount || 0}</Text>
-          <Text style={styles.summaryLabel}>Out of Stock</Text>
-        </View>
-      </View>
+      )}
 
       <FlatList
         data={filteredProducts}
@@ -149,17 +124,19 @@ export default function InventoryScreen() {
         renderItem={({ item }) => (
           <ProductCard
             product={item as any}
-            onAddStock={setSelectedProduct}
             onViewDetails={(p) => router.push(`/(app)/inventory/${p.id}`)}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 80 }
+        ]}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[Colors.primary]} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[theme.colors.primary]} />
         }
         ListEmptyComponent={
           <EmptyState
-            icon="package-variant"
+            icon="cube-outline"
             title="No products found"
             subtitle="Try adjusting your filters or search query"
           />
@@ -167,153 +144,109 @@ export default function InventoryScreen() {
       />
 
       <TouchableOpacity 
-        style={styles.fab} 
+        style={[
+          styles.fab,
+          { bottom: TAB_BAR_HEIGHT + insets.bottom + 16 }
+        ]} 
         onPress={() => router.push('/(app)/inventory/add-product')}
       >
-        <MaterialCommunityIcons name="plus" size={30} color={Colors.white} />
+        <Ionicons name="add" size={32} color="white" />
       </TouchableOpacity>
-
-      <Portal>
-        <Modal
-          visible={!!selectedProduct}
-          onDismiss={() => setSelectedProduct(null)}
-          contentContainerStyle={styles.modalContent}
-        >
-          <Text style={styles.modalTitle}>Add Stock</Text>
-          <Text style={styles.modalSubtitle}>{selectedProduct?.name}</Text>
-          <View style={styles.modalBody}>
-            <AppInput
-              label="Quantity to Add"
-              value={addStockQty}
-              onChangeText={setAddStockQty}
-              keyboardType="numeric"
-              placeholder="e.g. 10"
-              autoFocus
-            />
-            <AppInput
-              label="Note (Optional)"
-              value={addStockNote}
-              onChangeText={setAddStockNote}
-              placeholder="e.g. Restock from supplier"
-            />
-            <AppButton
-              title="Confirm Add Stock"
-              onPress={handleAddStock}
-              loading={addStockMutation.isPending}
-              fullWidth
-              style={styles.modalBtn}
-            />
-          </View>
-        </Modal>
-      </Portal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
-  header: {
-    backgroundColor: Colors.white,
-    paddingTop: Spacing.sm,
-    ...Shadows.sm,
+  searchSection: {
+    backgroundColor: theme.colors.bg,
+    paddingHorizontal: 20,
+    paddingTop: theme.spacing.sm,
   },
-  searchBar: {
-    paddingHorizontal: Spacing.base,
-    marginBottom: Spacing.sm,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: 16,
+    height: 52,
+    marginBottom: theme.spacing.md,
+    ...theme.shadow.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    color: theme.colors.textPrimary,
   },
   filterBar: {
-    paddingBottom: Spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   filterContent: {
-    paddingHorizontal: Spacing.base,
+    paddingRight: 20,
   },
-  filterChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.offWhite,
-    marginRight: Spacing.sm,
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: theme.radius.sm,
+    marginRight: 8,
+  },
+  activeFilterPill: {
+    backgroundColor: theme.colors.primary,
+  },
+  inactiveFilterPill: {
+    backgroundColor: theme.colors.bgCard,
     borderWidth: 1,
-    borderColor: Colors.grey200,
+    borderColor: theme.colors.border,
   },
-  activeFilterChip: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+  filterText: {
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
   },
-  filterChipText: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey600,
-    fontWeight: Typography.fontWeights.medium,
+  activeFilterText: {
+    color: theme.colors.bgCard,
   },
-  activeFilterChipText: {
-    color: Colors.white,
+  inactiveFilterText: {
+    color: theme.colors.textSecondary,
   },
-  summaryContainer: {
+  lowStockBanner: {
     flexDirection: 'row',
-    backgroundColor: Colors.white,
-    margin: Spacing.base,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    ...Shadows.sm,
-  },
-  summaryItem: {
-    flex: 1,
     alignItems: 'center',
+    backgroundColor: theme.colors.primaryLight,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(180, 83, 9, 0.1)',
   },
-  summaryValue: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-  },
-  summaryLabel: {
-    fontSize: 10,
-    color: Colors.grey500,
-    marginTop: 2,
-    textTransform: 'uppercase',
-  },
-  summaryDivider: {
-    width: 1,
-    backgroundColor: Colors.grey100,
+  lowStockText: {
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.primary,
+    marginLeft: 8,
   },
   listContent: {
-    padding: Spacing.base,
-    paddingBottom: 100,
+    paddingHorizontal: 20,
   },
   fab: {
     position: 'absolute',
-    right: Spacing.xl,
-    bottom: Spacing.xl,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.primary,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    ...Shadows.lg,
-  },
-  modalContent: {
-    backgroundColor: Colors.white,
-    margin: Spacing.xl,
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-  },
-  modalTitle: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-  },
-  modalSubtitle: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey500,
-    marginVertical: Spacing.xs,
-  },
-  modalBody: {
-    marginTop: Spacing.md,
-  },
-  modalBtn: {
-    marginTop: Spacing.md,
+    ...theme.shadow.lg,
+    elevation: 8,
   },
 });

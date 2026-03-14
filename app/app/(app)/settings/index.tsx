@@ -7,16 +7,15 @@ import {
   Switch, 
   TouchableOpacity, 
   Alert,
-  SafeAreaView
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { useAuthStore } from '../../../src/store/auth.store';
 import { useBiometric } from '../../../src/hooks/useBiometric';
-import { AppButton } from '../../../src/components/common/AppButton';
-import { AppCard } from '../../../src/components/common/AppCard';
+import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -35,8 +34,6 @@ export default function SettingsScreen() {
     try {
       const bio = await AsyncStorage.getItem('biometrics_enabled');
       setBiometricsEnabled(bio === 'true');
-      
-      const notif = await AsyncStorage.getItem('notifications_enabled');
       const available = await checkAvailability();
       setIsBiometricSupported(available);
     } catch (error) {
@@ -79,6 +76,10 @@ export default function SettingsScreen() {
     );
   };
 
+  const getInitials = (name: string) => {
+    return name?.charAt(0).toUpperCase() || 'A';
+  };
+
   const renderSettingItem = (
     icon: string, 
     title: string, 
@@ -91,9 +92,10 @@ export default function SettingsScreen() {
       style={styles.settingItem} 
       onPress={onPress || undefined} 
       disabled={!onPress}
+      activeOpacity={0.7}
     >
-      <View style={[styles.iconContainer, { backgroundColor: Colors.offWhite }]}>
-        <MaterialCommunityIcons name={icon as any} size={24} color={Colors.primary} />
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon as any} size={20} color={theme.colors.primary} />
       </View>
       <View style={styles.settingText}>
         <Text style={styles.settingTitle}>{title}</Text>
@@ -103,49 +105,43 @@ export default function SettingsScreen() {
         <Switch
           value={value!}
           onValueChange={onToggle}
-          trackColor={{ false: Colors.grey200, true: Colors.primary + '80' }}
-          thumbColor={value ? Colors.primary : Colors.grey300}
+          trackColor={{ false: theme.colors.bgMuted, true: theme.colors.primary }}
+          thumbColor="white"
         />
       ) : (
-        onPress && <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.grey300} />
+        onPress && <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
       )}
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <SafeAreaView style={styles.safeArea}>
+      <AppHeader title="Settings" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
         {/* Profile Card */}
-        <AppCard style={styles.profileCard}>
-          <View style={styles.profileHeader}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{admin?.name?.charAt(0).toUpperCase()}</Text>
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.userName}>{admin?.name}</Text>
-              <Text style={styles.userRole}>Store Administrator</Text>
-            </View>
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{getInitials(admin?.name || '')}</Text>
           </View>
-          <View style={styles.profileDetails}>
-            <View style={styles.detailRow}>
-              <MaterialCommunityIcons name="email-outline" size={16} color={Colors.grey500} />
-              <Text style={styles.detailText}>{admin?.email}</Text>
-            </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.userName}>{admin?.name || 'Administrator'}</Text>
+            <Text style={styles.userEmail}>{admin?.email}</Text>
           </View>
-        </AppCard>
+        </View>
 
         {/* Security Section */}
         <Text style={styles.sectionHeader}>Security</Text>
         <View style={styles.settingsGroup}>
           {isBiometricSupported && renderSettingItem(
-            'fingerprint',
+            'finger-print-outline',
             'Biometric Lock',
             'Unlock app using Fingerprint/FaceID',
             biometricsEnabled,
             toggleBiometrics
           )}
           {renderSettingItem(
-            'lock-outline',
+            'lock-closed-outline',
             'Change App PIN',
             'Update your 4-digit security PIN',
             null,
@@ -161,7 +157,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionHeader}>Notifications</Text>
         <View style={styles.settingsGroup}>
           {renderSettingItem(
-            'bell-outline',
+            'notifications-outline',
             'Push Notifications',
             'Receive alerts for low stock and new bills',
             notificationsEnabled,
@@ -181,7 +177,7 @@ export default function SettingsScreen() {
             () => Alert.alert('Help Center', 'Redirecting to support portal...')
           )}
           {renderSettingItem(
-            'information-outline',
+            'information-circle-outline',
             'About CarStock',
             'Version 1.0.0 (Build 24)',
             null,
@@ -191,8 +187,8 @@ export default function SettingsScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <MaterialCommunityIcons name="logout" size={22} color={Colors.error} />
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
+          <Ionicons name="log-out-outline" size={20} color={theme.colors.error} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
@@ -203,129 +199,126 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
   scrollContent: {
-    padding: Spacing.base,
-    paddingBottom: Spacing.xxl,
+    padding: 20,
+    paddingBottom: 40,
+  },
+  pageTitle: {
+    fontSize: 26,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
   },
   profileCard: {
-    padding: Spacing.lg,
-    marginBottom: Spacing.xl,
-    marginTop: Spacing.sm,
-  },
-  profileHeader: {
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: theme.spacing.xl,
+    ...theme.shadow.card,
   },
   avatar: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: theme.spacing.md,
   },
   avatarText: {
-    fontSize: 28,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.white,
+    fontSize: 24,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
   },
   profileInfo: {
-    marginLeft: Spacing.md,
+    flex: 1,
   },
   userName: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 18,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
-  userRole: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
+  userEmail: {
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
-  profileDetails: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.grey100,
-    paddingTop: Spacing.md,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  detailText: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey600,
-    marginLeft: Spacing.sm,
-  },
   sectionHeader: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.grey400,
+    fontSize: 12,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    marginBottom: Spacing.sm,
-    marginLeft: Spacing.xs,
+    letterSpacing: 1,
+    marginBottom: theme.spacing.sm,
+    marginLeft: 4,
   },
   settingsGroup: {
-    backgroundColor: Colors.white,
-    borderRadius: BorderRadius.lg,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.xl,
     overflow: 'hidden',
-    marginBottom: Spacing.xl,
-    ...Shadows.sm,
+    ...theme.shadow.card,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
+    padding: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.grey100,
+    borderBottomColor: theme.colors.bgMuted,
   },
   iconContainer: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.md,
+    borderRadius: 12,
+    backgroundColor: theme.colors.bgMuted,
     justifyContent: 'center',
     alignItems: 'center',
   },
   settingText: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: theme.spacing.md,
   },
   settingTitle: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.semibold,
-    color: Colors.dark,
+    fontSize: 16,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textPrimary,
   },
   settingSubtitle: {
-    fontSize: 10,
-    color: Colors.grey500,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF1F2',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.sm,
+    backgroundColor: theme.colors.bgCard,
+    paddingVertical: 16,
+    borderRadius: theme.radius.md,
+    marginTop: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.errorLight,
+    borderColor: 'rgba(185, 28, 28, 0.1)',
   },
   logoutText: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.error,
-    marginLeft: Spacing.sm,
+    fontSize: 16,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.error,
+    marginLeft: 8,
   },
   versionText: {
     textAlign: 'center',
-    fontSize: 10,
-    color: Colors.grey400,
-    marginTop: Spacing.xxl,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginTop: 40,
+    opacity: 0.8,
   },
 });

@@ -13,12 +13,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { AppInput } from '../../../src/components/common/AppInput';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { productsApi } from '../../../src/api/products.api';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import client from '../../../src/api/client';
+import { AppHeader } from '../../../src/components/common/AppHeader';
 
 const CATEGORIES = ['TYRES', 'BATTERIES', 'BRAKES', 'OILS', 'WIPERS', 'LIGHTING', 'AUDIO', 'OTHER'];
 
@@ -149,209 +150,213 @@ export default function AddEditProductScreen() {
     if (isEdit && isFetching) return <LoadingSpinner />;
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-            <View style={styles.imageSection}>
-                <TouchableOpacity
-                    style={styles.imagePlaceholder}
-                    onPress={pickImage}
-                    disabled={uploading}
-                >
-                    {uploading ? (
-                        <LoadingSpinner />
-                    ) : image ? (
-                        <Image source={{ uri: image }} style={styles.productImage} />
-                    ) : (
-                        <View style={styles.placeholderContent}>
-                            <MaterialCommunityIcons name="camera-plus-outline" size={40} color={Colors.grey400} />
-                            <Text style={styles.placeholderText}>Add Product Image</Text>
-                        </View>
-                    )}
-                </TouchableOpacity>
-                {image && !uploading && (
+        <View style={styles.container}>
+            <AppHeader title={isEdit ? 'Edit Product' : 'Add New Product'} showBackButton />
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.imageSection}>
                     <TouchableOpacity
-                        style={styles.removeImageBtn}
-                        onPress={() => {
-                            setImage(null);
-                            setValue('imageUrl', '');
-                        }}
+                        style={styles.imagePlaceholder}
+                        onPress={pickImage}
+                        disabled={uploading}
+                        activeOpacity={0.7}
                     >
-                        <MaterialCommunityIcons name="close-circle" size={24} color={Colors.error} />
+                        {uploading ? (
+                            <LoadingSpinner />
+                        ) : image ? (
+                            <Image source={{ uri: image }} style={styles.productImage} />
+                        ) : (
+                            <View style={styles.placeholderContent}>
+                                <MaterialCommunityIcons name="camera-plus-outline" size={32} color={theme.colors.primary} />
+                                <Text style={styles.placeholderText}>Choose Image</Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
-                )}
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Basic Information</Text>
-
-                <Controller
-                    control={control}
-                    name="sku"
-                    rules={{ required: 'SKU is required' }}
-                    render={({ field: { onChange, value } }) => (
-                        <AppInput
-                            label="SKU / Item Code"
-                            placeholder="e.g. TYRE-MRF-15"
-                            value={value}
-                            onChangeText={onChange}
-                            error={errors.sku?.message}
-                            autoCapitalize="characters"
-                        />
+                    {image && !uploading && (
+                        <TouchableOpacity
+                            style={styles.removeImageBtn}
+                            onPress={() => {
+                                setImage(null);
+                                setValue('imageUrl', '');
+                            }}
+                        >
+                            <MaterialCommunityIcons name="close-circle" size={24} color={theme.colors.error} />
+                        </TouchableOpacity>
                     )}
-                />
-
-                <Controller
-                    control={control}
-                    name="name"
-                    rules={{ required: 'Product Name is required' }}
-                    render={({ field: { onChange, value } }) => (
-                        <AppInput
-                            label="Product Name"
-                            placeholder="e.g. MRF ZVTV 185/65 R15"
-                            value={value}
-                            onChangeText={onChange}
-                            error={errors.name?.message}
-                        />
-                    )}
-                />
-
-                <Controller
-                    control={control}
-                    name="brand"
-                    render={({ field: { onChange, value } }) => (
-                        <AppInput
-                            label="Brand (Optional)"
-                            placeholder="e.g. MRF"
-                            value={value}
-                            onChangeText={onChange}
-                        />
-                    )}
-                />
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Inventory & Pricing</Text>
-
-                <Text style={styles.label}>Category</Text>
-                <View style={styles.categoryContainer}>
-                    {CATEGORIES.map((cat) => (
-                        <Controller
-                            key={cat}
-                            control={control}
-                            name="category"
-                            render={({ field: { onChange, value } }) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.catChip,
-                                        value === cat && styles.catChipActive,
-                                    ]}
-                                    onPress={() => onChange(cat)}
-                                >
-                                    <Text style={[
-                                        styles.catText,
-                                        value === cat && styles.catTextActive
-                                    ]}>{cat}</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    ))}
                 </View>
 
-                <View style={styles.row}>
-                    <View style={{ flex: 1, marginRight: Spacing.md }}>
-                        <Controller
-                            control={control}
-                            name="sellingPrice"
-                            rules={{ required: 'Price is required' }}
-                            render={({ field: { onChange, value } }) => (
-                                <AppInput
-                                    label="Selling Price"
-                                    placeholder="0.00"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    keyboardType="numeric"
-                                    leftIcon="currency-inr"
-                                    error={errors.sellingPrice?.message}
-                                />
-                            )}
-                        />
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Basic Information</Text>
+
+                    <Controller
+                        control={control}
+                        name="sku"
+                        rules={{ required: 'SKU is required' }}
+                        render={({ field: { onChange, value } }) => (
+                            <AppInput
+                                label="SKU / Item Code"
+                                placeholder="e.g. TYRE-MRF-15"
+                                value={value}
+                                onChangeText={onChange}
+                                error={errors.sku?.message}
+                                autoCapitalize="characters"
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        control={control}
+                        name="name"
+                        rules={{ required: 'Product Name is required' }}
+                        render={({ field: { onChange, value } }) => (
+                            <AppInput
+                                label="Product Name"
+                                placeholder="name of the part"
+                                value={value}
+                                onChangeText={onChange}
+                                error={errors.name?.message}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        control={control}
+                        name="brand"
+                        render={({ field: { onChange, value } }) => (
+                            <AppInput
+                                label="Brand (Optional)"
+                                placeholder="manufacturer brand"
+                                value={value}
+                                onChangeText={onChange}
+                            />
+                        )}
+                    />
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Inventory & Pricing</Text>
+
+                    <Text style={styles.label}>Category</Text>
+                    <View style={styles.categoryContainer}>
+                        {CATEGORIES.map((cat) => (
+                            <Controller
+                                key={cat}
+                                control={control}
+                                name="category"
+                                render={({ field: { onChange, value } }) => (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.catChip,
+                                            value === cat && styles.catChipActive,
+                                        ]}
+                                        onPress={() => onChange(cat)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={[
+                                            styles.catText,
+                                            value === cat && styles.catTextActive
+                                        ]}>{cat}</Text>
+                                    </TouchableOpacity>
+                                )}
+                            />
+                        ))}
                     </View>
-                    <View style={{ flex: 1 }}>
-                        <Controller
-                            control={control}
-                            name="reorderLevel"
-                            rules={{ required: 'Required' }}
-                            render={({ field: { onChange, value } }) => (
-                                <AppInput
-                                    label="Reorder Level"
-                                    placeholder="5"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    keyboardType="numeric"
-                                    error={errors.reorderLevel?.message}
-                                />
-                            )}
-                        />
+
+                    <View style={styles.row}>
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                            <Controller
+                                control={control}
+                                name="sellingPrice"
+                                rules={{ required: 'Price is required' }}
+                                render={({ field: { onChange, value } }) => (
+                                    <AppInput
+                                        label="Price (₹)"
+                                        placeholder="0.00"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        keyboardType="numeric"
+                                        error={errors.sellingPrice?.message}
+                                    />
+                                )}
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Controller
+                                control={control}
+                                name="reorderLevel"
+                                rules={{ required: 'Required' }}
+                                render={({ field: { onChange, value } }) => (
+                                    <AppInput
+                                        label="Reorder Level"
+                                        placeholder="5"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        keyboardType="numeric"
+                                        error={errors.reorderLevel?.message}
+                                    />
+                                )}
+                            />
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Additional Details</Text>
-                <Controller
-                    control={control}
-                    name="description"
-                    render={({ field: { onChange, value } }) => (
-                        <AppInput
-                            label="Description"
-                            placeholder="Describe the product..."
-                            value={value}
-                            onChangeText={onChange}
-                            multiline
-                            numberOfLines={4}
-                            containerStyle={{ height: 120 }}
-                        />
-                    )}
-                />
-            </View>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Additional Notes</Text>
+                    <Controller
+                        control={control}
+                        name="description"
+                        render={({ field: { onChange, value } }) => (
+                            <AppInput
+                                label="Description"
+                                placeholder="internal notes or details..."
+                                value={value}
+                                onChangeText={onChange}
+                                multiline
+                                numberOfLines={4}
+                                containerStyle={{ height: 100 }}
+                            />
+                        )}
+                    />
+                </View>
 
-            <View style={styles.footer}>
-                <AppButton
-                    title={isEdit ? 'Update Product' : 'Create Product'}
-                    onPress={handleSubmit(onSubmit)}
-                    loading={mutation.isPending}
-                    fullWidth
-                    size="lg"
-                />
-            </View>
-        </ScrollView>
+                <View style={styles.footer}>
+                    <AppButton
+                        title={isEdit ? 'Update Product' : 'Create Product'}
+                        onPress={handleSubmit(onSubmit)}
+                        loading={mutation.isPending}
+                        fullWidth
+                        size="lg"
+                    />
+                </View>
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.screenBg,
+        backgroundColor: theme.colors.bg,
     },
     scrollContent: {
-        padding: Spacing.lg,
+        padding: 20,
     },
     imageSection: {
         alignItems: 'center',
-        marginBottom: Spacing.lg,
+        marginBottom: 24,
         position: 'relative',
     },
     imagePlaceholder: {
-        width: 150,
-        height: 150,
-        borderRadius: BorderRadius.lg,
-        backgroundColor: Colors.white,
-        borderWidth: 1,
-        borderColor: Colors.grey200,
+        width: 120,
+        height: 120,
+        borderRadius: 24,
+        backgroundColor: theme.colors.bgCard,
+        borderWidth: 1.5,
+        borderColor: theme.colors.border,
         borderStyle: 'dashed',
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
-        ...Shadows.sm,
+        ...theme.shadow.sm,
     },
     productImage: {
         width: '100%',
@@ -362,70 +367,72 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     placeholderText: {
-        fontSize: Typography.fontSizes.xs,
-        color: Colors.grey500,
-        marginTop: Spacing.xs,
-        fontWeight: Typography.fontWeights.medium,
+        fontSize: 12,
+        fontFamily: theme.font.bodyMedium,
+        color: theme.colors.textSecondary,
+        marginTop: 8,
     },
     removeImageBtn: {
         position: 'absolute',
-        top: -10,
-        right: '30%',
-        backgroundColor: Colors.white,
+        top: -8,
+        right: '32%',
+        backgroundColor: theme.colors.bgCard,
         borderRadius: 12,
     },
     section: {
-        backgroundColor: Colors.white,
-        borderRadius: BorderRadius.lg,
-        padding: Spacing.lg,
-        marginBottom: Spacing.lg,
-        ...Shadows.sm,
+        backgroundColor: theme.colors.bgCard,
+        borderRadius: theme.radius.lg,
+        padding: 24,
+        marginBottom: 24,
+        ...theme.shadow.sm,
     },
     sectionTitle: {
-        fontSize: Typography.fontSizes.md,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.dark,
-        marginBottom: Spacing.lg,
+        fontSize: 14,
+        fontFamily: theme.font.bodyBold,
+        color: theme.colors.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 20,
     },
     row: {
         flexDirection: 'row',
     },
     label: {
-        fontSize: Typography.fontSizes.xs,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.grey600,
-        marginBottom: Spacing.sm,
+        fontSize: 12,
+        fontFamily: theme.font.bodyBold,
+        color: theme.colors.textSecondary,
+        marginBottom: 8,
     },
     categoryContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginBottom: Spacing.lg,
+        marginBottom: 20,
     },
     catChip: {
-        paddingHorizontal: Spacing.md,
-        paddingVertical: 6,
-        borderRadius: BorderRadius.full,
-        backgroundColor: Colors.grey100,
-        marginRight: Spacing.sm,
-        marginBottom: Spacing.sm,
-        borderWidth: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: theme.radius.full,
+        backgroundColor: theme.colors.bgMuted,
+        marginRight: 10,
+        marginBottom: 10,
+        borderWidth: 1.5,
         borderColor: 'transparent',
     },
     catChipActive: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
+        backgroundColor: theme.colors.primaryLight,
+        borderColor: theme.colors.primary,
     },
     catText: {
         fontSize: 12,
-        color: Colors.grey600,
-        fontWeight: Typography.fontWeights.medium,
+        color: theme.colors.textSecondary,
+        fontFamily: theme.font.bodyMedium,
     },
     catTextActive: {
-        color: Colors.white,
-        fontWeight: Typography.fontWeights.bold,
+        color: theme.colors.primary,
+        fontFamily: theme.font.bodyBold,
     },
     footer: {
-        marginTop: Spacing.md,
-        marginBottom: Spacing.xxl,
+        marginTop: 8,
+        marginBottom: 48,
     },
 });

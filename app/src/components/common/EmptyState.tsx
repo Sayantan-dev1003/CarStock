@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing } from '../../constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../../constants/theme';
 import { AppButton } from './AppButton';
 
 interface EmptyStateProps {
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon: React.ComponentProps<typeof Ionicons>['name'];
   title: string;
   subtitle: string;
   actionLabel?: string;
@@ -21,7 +21,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <MaterialCommunityIcons name={icon} size={80} color={Colors.grey300} />
+      <Ionicons name={icon} size={64} color={theme.colors.textMuted} />
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.subtitle}>{subtitle}</Text>
       {actionLabel && onAction && (
@@ -41,21 +41,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.xxl,
+    padding: theme.spacing.xxl,
   },
   title: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-    marginTop: Spacing.md,
+    fontSize: 20,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+    marginTop: theme.spacing.md,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: Typography.fontSizes.base,
-    color: Colors.grey500,
-    marginTop: Spacing.sm,
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
     textAlign: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: theme.spacing.xl,
   },
   button: {
     minWidth: 150,

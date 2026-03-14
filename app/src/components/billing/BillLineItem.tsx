@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { theme } from '../../constants/theme';
 import { formatCurrency } from '../../utils/format';
 import { BillItem } from '../../types/billing.types';
 
@@ -38,8 +38,8 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
           >
             <MaterialCommunityIcons 
               name={item.quantity > 1 ? "minus" : "trash-can-outline"} 
-              size={20} 
-              color={item.quantity > 1 ? Colors.grey600 : Colors.error} 
+              size={18} 
+              color={item.quantity > 1 ? theme.colors.textSecondary : theme.colors.error} 
             />
           </TouchableOpacity>
           
@@ -51,12 +51,12 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
             style={styles.qtyBtn}
             onPress={() => onQuantityChange(item.productId, item.quantity + 1)}
           >
-            <MaterialCommunityIcons name="plus" size={20} color={Colors.primary} />
+            <MaterialCommunityIcons name="plus" size={18} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity onPress={() => onRemove(item.productId)} style={styles.removeBtn}>
-          <Text style={styles.removeText}>Remove</Text>
+          <Text style={styles.removeText}>Remove Item</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -65,37 +65,40 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.white,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.sm,
+    backgroundColor: theme.colors.bgCard,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.grey100,
+    borderColor: theme.colors.border,
+    ...theme.shadow.sm,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: theme.spacing.md,
   },
   info: {
     flex: 1,
-    marginRight: Spacing.md,
+    marginRight: theme.spacing.md,
   },
   name: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 16,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
   unitPrice: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   lineTotal: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 18,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
+    letterSpacing: -0.5,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -105,31 +108,32 @@ const styles = StyleSheet.create({
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.grey100,
-    borderRadius: BorderRadius.sm,
+    backgroundColor: theme.colors.bgMuted,
+    borderRadius: theme.radius.sm,
     padding: 2,
   },
   qtyBtn: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
   qtyDisplay: {
-    minWidth: 40,
+    minWidth: 44,
     alignItems: 'center',
   },
   qtyText: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 15,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
   },
   removeBtn: {
     paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   removeText: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.error,
-    fontWeight: Typography.fontWeights.medium,
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.error,
   },
 });

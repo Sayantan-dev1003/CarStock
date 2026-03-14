@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -6,14 +6,16 @@ import {
   ScrollView, 
   RefreshControl, 
   TouchableOpacity,
-  SafeAreaView
 } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
+import { AppCard } from '../../../src/components/common/AppCard';
 import { reportsApi } from '../../../src/api/reports.api';
 import { productsApi } from '../../../src/api/products.api';
+import { AppHeader } from '../../../src/components/common/AppHeader';
 import { MetricCard } from '../../../src/components/dashboard/MetricCard';
 import { RevenueChart } from '../../../src/components/dashboard/RevenueChart';
 import { useSocket } from '../../../src/hooks/useSocket';
@@ -24,7 +26,6 @@ import { AppButton } from '../../../src/components/common/AppButton';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { isConnected } = useSocket();
   const { setup: setupNotifications } = useNotifications();
   const notificationSetupRef = useRef(false);
@@ -63,9 +64,9 @@ export default function DashboardScreen() {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
   };
 
   if (isDashboardLoading || isLowStockLoading) {
@@ -74,99 +75,100 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <AppHeader 
+        title={getGreeting() + " 👋"}
+        subtitle="Here's your shop overview"
+        rightAction={{
+          icon: 'notifications-outline',
+          onPress: () => router.push('/(app)/settings'), // Example action
+        }}
+      />
       <ScrollView 
         style={styles.container}
+        contentContainerStyle={styles.contentContainer}
         refreshControl={
-          <RefreshControl refreshing={isDashboardRefetching} onRefresh={onRefresh} colors={[Colors.primary]} />
+          <RefreshControl refreshing={isDashboardRefetching} onRefresh={onRefresh} colors={[theme.colors.primary]} />
         }
       >
-        {/* Header Section */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>{getGreeting()}, Admin</Text>
-            <Text style={styles.date}>{formatDate(new Date())}</Text>
-          </View>
-          <TouchableOpacity style={styles.notificationBell}>
-            <MaterialCommunityIcons name="bell-outline" size={24} color={Colors.dark} />
-            <View style={styles.notificationDot} />
-          </TouchableOpacity>
-        </View>
-
         {/* Metrics Grid */}
         <View style={styles.metricsGrid}>
-          <View style={styles.row}>
+          <View style={styles.metricsRow}>
             <MetricCard
               title="Today's Revenue"
               value={formatCurrency(dashboardData?.todayRevenue || 0)}
-              subtitle="Daily Sales"
-              icon="currency-inr"
+              icon="wallet-outline"
               trend={{ value: 12, isPositive: true }}
             />
             <MetricCard
-              title="Bills Today"
+              title="Today's Bills"
               value={dashboardData?.todayBills || 0}
-              subtitle="Transactions"
-              icon="receipt"
+              icon="receipt-outline"
             />
           </View>
-          <View style={styles.row}>
+          <View style={styles.metricsRow}>
             <MetricCard
-              title="New Customers"
-              value={dashboardData?.newCustomersToday || 0}
-              subtitle="Joined Today"
-              icon="account-plus"
+              title="Total Stock"
+              value={dashboardData?.totalStock || lowStockProducts?.length || 0}
+              icon="cube-outline"
+              trend={lowStockProducts && lowStockProducts.length > 0 ? { value: lowStockProducts.length, isPositive: false } : undefined}
             />
             <MetricCard
-              title="Low Stock"
-              value={lowStockProducts?.length || 0}
-              subtitle="Needs Reorder"
-              icon="alert-circle"
-              trend={lowStockProducts && lowStockProducts.length > 0 ? { value: lowStockProducts.length, isPositive: false } : undefined}
+              title="Total Customers"
+              value={dashboardData?.totalCustomers || 0}
+              icon="people-outline"
             />
           </View>
         </View>
 
         {/* Revenue Chart */}
-        <RevenueChart data={dashboardData?.weeklyRevenue || []} />
+        <View style={styles.chartSection}>
+          <RevenueChart data={dashboardData?.weeklyRevenue || []} />
+        </View>
 
-        {/* Low Stock Alerts */}
-        {lowStockProducts && lowStockProducts.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>⚠️ Low Stock Alerts</Text>
-              <TouchableOpacity onPress={() => router.push('/(app)/inventory')}>
-                <Text style={styles.viewAll}>View All</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.lowStockCard}>
-              {lowStockProducts.slice(0, 5).map((product: any) => (
-                <View key={product.id} style={styles.lowStockItem}>
-                  <View style={styles.lowStockInfo}>
-                    <Text style={styles.productName}>{product.name}</Text>
-                    <Text style={styles.category}>{product.category}</Text>
-                  </View>
-                  <View style={styles.stockLevel}>
-                    <Text style={styles.stockQty}>{product.quantity}</Text>
-                    <Text style={styles.stockLimit}>/ {product.reorderLevel}</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
+        {/* Recent Activity / Low Stock Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>LOW STOCK ALERT</Text>
+            <TouchableOpacity onPress={() => router.push('/(app)/inventory')}>
+              <Text style={styles.viewAll}>View All</Text>
+            </TouchableOpacity>
           </View>
-        )}
+          
+          {lowStockProducts && lowStockProducts.length > 0 ? (
+            lowStockProducts.slice(0, 3).map((product: any) => (
+              <AppCard 
+                key={product.id} 
+                style={styles.activityCard}
+                onPress={() => router.push(`/(app)/inventory/${product.id}`)}
+              >
+                <View style={styles.iconCircle}>
+                  <Ionicons name="alert-circle-outline" size={20} color={theme.colors.primary} />
+                </View>
+                <View style={styles.activityInfo}>
+                  <Text style={styles.activityTitle}>{product.name}</Text>
+                  <Text style={styles.activitySubtitle}>{product.category} • {product.quantity} in stock</Text>
+                </View>
+                <Text style={styles.timestamp}>Needs Reorder</Text>
+              </AppCard>
+            ))
+          ) : (
+            <View style={styles.emptyActivity}>
+              <Text style={styles.emptyText}>No low stock items</Text>
+            </View>
+          )}
+        </View>
 
-        {/* Bottom Actions */}
         <View style={styles.bottomActions}>
           <AppButton
             title="Generate Weekly Report"
             variant="outline"
-            leftIcon="file-document-outline"
+            leftIcon="document-text-outline"
             onPress={() => reportsApi.generateReport('WEEKLY')}
             fullWidth
           />
         </View>
-        
-        <View style={{ height: 40 }} />
+
+        <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -175,120 +177,89 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
   container: {
     flex: 1,
-    padding: Spacing.base,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-    marginTop: Spacing.sm,
-  },
-  greeting: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-  },
-  date: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey500,
-    marginTop: 2,
-  },
-  notificationBell: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Shadows.sm,
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
-    borderWidth: 1.5,
-    borderColor: Colors.white,
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.xl,
   },
   metricsGrid: {
-    marginBottom: Spacing.md,
+    gap: 16,
+    marginBottom: theme.spacing.lg,
   },
-  row: {
+  metricsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 16,
+  },
+  chartSection: {
+    marginBottom: theme.spacing.lg,
   },
   section: {
-    marginTop: Spacing.lg,
+    marginTop: theme.spacing.md,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   sectionTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 16,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
   },
   viewAll: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.primary,
-    fontWeight: Typography.fontWeights.semibold,
+    fontSize: 14,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.primary,
   },
-  lowStockCard: {
-    backgroundColor: Colors.white,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.warningLight,
-    ...Shadows.sm,
-  },
-  lowStockItem: {
+  activityCard: {
+    padding: theme.spacing.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.grey100,
+    marginBottom: 12,
   },
-  lowStockInfo: {
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: theme.colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  activityInfo: {
     flex: 1,
   },
-  productName: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.semibold,
-    color: Colors.dark,
+  activityTitle: {
+    fontSize: 16,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
-  category: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
+  activitySubtitle: {
+    fontSize: 13,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
-  stockLevel: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+  timestamp: {
+    fontSize: 12,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.primary,
   },
-  stockQty: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.error,
+  emptyActivity: {
+    padding: 20,
+    alignItems: 'center',
   },
-  stockLimit: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey400,
-    marginLeft: 2,
+  emptyText: {
+    color: theme.colors.textMuted,
+    fontStyle: 'italic',
   },
   bottomActions: {
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.xxl,
+    marginTop: theme.spacing.xl,
   },
 });

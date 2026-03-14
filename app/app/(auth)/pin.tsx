@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
   withRepeat
 } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../src/constants/theme';
+import { theme } from '../../src/constants/theme';
 import { useAuthStore } from '../../src/store/auth.store';
 import { storage } from '../../src/utils/storage';
 import { useBiometric } from '../../src/hooks/useBiometric';
@@ -37,14 +37,14 @@ export default function PinScreen() {
 
   useEffect(() => {
     const checkPin = async () => {
-      const pin = await storage.getPin();
+      const pinValue = await storage.getPin();
       const available = await checkAvailability();
       setIsBiometricSupported(available);
       
-      if (!pin) {
+      if (!pinValue) {
         setIsSettingUp(true);
       } else {
-        setStoredPin(pin);
+        setStoredPin(pinValue);
         if (available) {
           handleBiometric();
         }
@@ -133,7 +133,7 @@ export default function PinScreen() {
               onPress={() => key === 'delete' ? handleDelete() : handleKeyPress(key)}
             >
               {key === 'delete' ? (
-                <MaterialCommunityIcons name="backspace-outline" size={28} color={Colors.white} />
+                <MaterialCommunityIcons name="backspace-outline" size={28} color={theme.colors.bgCard} />
               ) : (
                 <Text style={styles.keyText}>{key}</Text>
               )}
@@ -148,7 +148,7 @@ export default function PinScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name="lock-reset" size={40} color={Colors.primary} />
+          <MaterialCommunityIcons name="lock-reset" size={40} color={theme.colors.primary} />
         </View>
         <Text style={styles.title}>
           {isSettingUp 
@@ -176,7 +176,7 @@ export default function PinScreen() {
 
       {!isSettingUp && isBiometricSupported && (
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric}>
-          <MaterialCommunityIcons name="fingerprint" size={48} color={Colors.primary} />
+          <MaterialCommunityIcons name="fingerprint" size={48} color={theme.colors.primary} />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
       )}
@@ -191,7 +191,7 @@ export default function PinScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark,
+    backgroundColor: theme.colors.textPrimary,
     paddingTop: 80,
   },
   header: {
@@ -201,21 +201,23 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(226, 55, 68, 0.1)',
+    borderRadius: 24,
+    backgroundColor: 'rgba(180, 83, 9, 0.1)', // primary at low opacity
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   title: {
-    color: Colors.white,
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
+    color: theme.colors.bgCard,
+    fontSize: 26,
+    fontFamily: theme.font.heading,
   },
   subtitle: {
-    color: Colors.grey400,
-    fontSize: Typography.fontSizes.base,
+    color: theme.colors.textMuted,
+    fontSize: 15,
+    fontFamily: theme.font.body,
     marginTop: 8,
+    opacity: 0.8,
   },
   dotsContainer: {
     flexDirection: 'row',
@@ -223,24 +225,24 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   dot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     marginHorizontal: 15,
   },
   dotFilled: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   biometricBtn: {
     alignItems: 'center',
     marginBottom: 40,
   },
   biometricText: {
-    color: Colors.primary,
-    fontWeight: Typography.fontWeights.bold,
+    color: theme.colors.primary,
+    fontFamily: theme.font.bodyMedium,
     marginTop: 8,
   },
   bottomSection: {
@@ -261,8 +263,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   keyText: {
-    color: Colors.white,
-    fontSize: 28,
-    fontWeight: Typography.fontWeights.semibold,
+    color: theme.colors.bgCard,
+    fontSize: 30,
+    fontFamily: theme.font.heading,
   },
 });

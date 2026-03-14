@@ -18,7 +18,8 @@ import Animated, {
   withSequence,
   withTiming
 } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
+import { AppHeader } from '../../../src/components/common/AppHeader';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { useBillingStore } from '../../../src/store/billing.store';
 import { formatCurrency, formatBillNumber } from '../../../src/utils/format';
@@ -158,7 +159,7 @@ export default function BillSuccessScreen() {
               title="New Bill"
               onPress={() => router.replace('/(app)/billing')}
               style={styles.flexBtn}
-              leftIcon="plus"
+              leftIcon="add"
             />
           </View>
           <AppButton
@@ -176,149 +177,153 @@ export default function BillSuccessScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
   scrollContent: {
     flexGrow: 1,
   },
   topSection: {
-    backgroundColor: Colors.dark,
-    height: 280,
+    backgroundColor: theme.colors.textPrimary,
+    height: 300,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 40,
   },
   checkCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.success,
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.lg,
-    ...Shadows.lg,
+    marginBottom: theme.spacing.lg,
+    ...theme.shadow.lg,
   },
   successTitle: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.white,
+    fontSize: 24,
+    fontFamily: theme.font.heading,
+    color: theme.colors.bgCard,
     marginBottom: 4,
   },
   billId: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey400,
+    fontSize: 14,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textMuted,
     letterSpacing: 1,
   },
   card: {
-    backgroundColor: Colors.white,
-    marginHorizontal: Spacing.lg,
-    marginTop: -40,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
-    ...Shadows.lg,
+    backgroundColor: theme.colors.bgCard,
+    marginHorizontal: 20,
+    marginTop: -60,
+    borderRadius: theme.radius.lg,
+    padding: 24,
+    ...theme.shadow.lg,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
   summaryLabel: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey500,
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
   },
   summaryValue: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 16,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
   amountValue: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 20,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
   },
   modeBadge: {
-    backgroundColor: Colors.grey100,
+    backgroundColor: theme.colors.bgMuted,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: theme.radius.sm,
   },
   modeText: {
     fontSize: 10,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.grey100,
-    marginVertical: Spacing.lg,
+    backgroundColor: theme.colors.bgMuted,
+    marginVertical: 24,
   },
   sectionTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-    marginBottom: Spacing.lg,
+    fontSize: 16,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
+    marginBottom: 16,
   },
   deliveryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
   deliveryInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   deliveryLabel: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey600,
-    marginLeft: Spacing.sm,
+    fontSize: 14,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textSecondary,
+    marginLeft: 12,
   },
   statusBadgeSuccess: {
-    backgroundColor: Colors.successLight,
-    paddingHorizontal: 8,
+    backgroundColor: theme.colors.success + '15',
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: theme.radius.sm,
   },
   statusTextSuccess: {
-    fontSize: 10,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.success,
+    fontSize: 11,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.success,
   },
   retryBtn: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
-    textDecorationLine: 'underline',
+    fontSize: 13,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.primary,
   },
   pdfButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.offWhite,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.lg,
+    backgroundColor: theme.colors.bgMuted,
+    padding: 16,
+    borderRadius: theme.radius.md,
+    marginTop: 8,
     borderWidth: 1,
-    borderColor: Colors.grey200,
+    borderColor: theme.colors.border,
   },
   pdfButtonText: {
     flex: 1,
-    marginLeft: Spacing.sm,
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.semibold,
-    color: Colors.dark,
+    marginLeft: 12,
+    fontSize: 15,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
   bottomActions: {
-    padding: Spacing.xl,
-    paddingTop: Spacing.xxl,
+    padding: 24,
+    paddingTop: 40,
   },
   btnRow: {
     flexDirection: 'row',
-    marginBottom: Spacing.md,
+    marginBottom: 12,
   },
   flexBtn: {
     flex: 1,
   },
   dashboardBtn: {
-    borderColor: Colors.grey300,
+    marginTop: 8,
   },
 });

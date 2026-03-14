@@ -8,14 +8,14 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { theme } from '../../constants/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 interface AppInputProps extends TextInputProps {
   label?: string;
   error?: string;
-  leftIcon?: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-  rightIcon?: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  leftIcon?: React.ComponentProps<typeof Ionicons>['name'];
+  rightIcon?: React.ComponentProps<typeof Ionicons>['name'];
   onRightIconPress?: () => void;
   containerStyle?: ViewStyle;
 }
@@ -45,16 +45,16 @@ export const AppInput: React.FC<AppInputProps> = ({
         ]}
       >
         {leftIcon && (
-          <MaterialCommunityIcons
+          <Ionicons
             name={leftIcon}
             size={20}
-            color={isFocused ? Colors.primary : Colors.grey500}
+            color={isFocused ? theme.colors.primary : theme.colors.textMuted}
             style={styles.leftIcon}
           />
         )}
         <TextInput
           {...props}
-          placeholderTextColor={Colors.grey400}
+          placeholderTextColor={theme.colors.textMuted}
           onFocus={(e) => {
             setIsFocused(true);
             props.onFocus?.(e);
@@ -67,10 +67,10 @@ export const AppInput: React.FC<AppInputProps> = ({
         />
         {rightIcon && (
           <TouchableOpacity onPress={onRightIconPress} disabled={!onRightIconPress}>
-            <MaterialCommunityIcons
+            <Ionicons
               name={rightIcon}
               size={20}
-              color={Colors.grey500}
+              color={theme.colors.textMuted}
               style={styles.rightIcon}
             />
           </TouchableOpacity>
@@ -83,57 +83,64 @@ export const AppInput: React.FC<AppInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.md,
+    marginBottom: theme.spacing.md,
     width: '100%',
   },
   label: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.medium,
-    color: Colors.grey600,
-    marginBottom: Spacing.xs,
+    fontSize: 13,
+    fontFamily: theme.font.body,
+    fontWeight: '700',
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
+    marginLeft: 4,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.grey200,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    height: 50,
+    backgroundColor: theme.colors.bgMuted,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    borderRadius: theme.radius.md,
+    paddingHorizontal: 16,
+    height: 52,
   },
   focused: {
-    borderColor: Colors.primary,
+    backgroundColor: 'white',
+    borderColor: theme.colors.primary,
   },
   errorBorder: {
-    borderColor: Colors.error,
+    borderColor: theme.colors.error,
+    backgroundColor: 'white',
   },
   disabled: {
-    backgroundColor: Colors.grey100,
+    opacity: 0.6,
   },
   multiline: {
     height: 100,
     alignItems: 'flex-start',
-    paddingVertical: Spacing.sm,
+    paddingVertical: 12,
   },
   leftIcon: {
-    marginRight: Spacing.sm,
+    marginRight: 10,
   },
   rightIcon: {
-    marginLeft: Spacing.sm,
+    marginLeft: 10,
   },
   input: {
     flex: 1,
-    fontSize: Typography.fontSizes.base,
-    color: Colors.dark,
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    color: theme.colors.textPrimary,
     height: '100%',
   },
   multilineInput: {
     textAlignVertical: 'top',
   },
   errorText: {
-    color: Colors.error,
-    fontSize: Typography.fontSizes.xs,
-    marginTop: Spacing.xs,
+    color: theme.colors.error,
+    fontFamily: theme.font.body,
+    fontSize: 11,
+    marginTop: 4,
+    marginLeft: 4,
   },
 });

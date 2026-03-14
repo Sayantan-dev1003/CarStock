@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { theme } from '../../constants/theme';
 import { formatCurrency } from '../../utils/format';
 
 interface RevenueData {
@@ -27,10 +27,10 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
   const chartData = data.map((item) => ({
     value: item.revenue,
     label: item.day,
-    frontColor: Colors.primary,
+    frontColor: theme.colors.primary,
     topLabelComponent: () => (
       <Text style={styles.barLabel}>
-        {item.revenue > 0 ? formatCurrency(item.revenue) : ''}
+        {item.revenue > 0 ? (item.revenue / 1000).toFixed(1) + 'k' : ''}
       </Text>
     ),
   }));
@@ -43,20 +43,20 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
       <View style={styles.chartWrapper}>
         <BarChart
           data={chartData}
-          width={width - Spacing.md * 4 - 32}
+          width={width - 20 * 2 - theme.spacing.md * 2 - 20}
           height={180}
           barWidth={32}
           spacing={12}
           roundedTop
           roundedBottom={false}
           hideRules={false}
-          rulesColor={Colors.grey200}
+          rulesColor={theme.colors.bgMuted}
           rulesType="solid"
           noOfSections={4}
           maxValue={Math.ceil(maxValue * 1.2)}
           yAxisThickness={0}
           xAxisThickness={1}
-          xAxisColor={Colors.grey200}
+          xAxisColor={theme.colors.bgMuted}
           yAxisTextStyle={styles.axisLabel}
           xAxisLabelTextStyle={styles.axisLabel}
           isAnimated
@@ -69,43 +69,44 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.white,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginVertical: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.grey200,
+    backgroundColor: theme.colors.bgCard,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    ...theme.shadow.card,
   },
   title: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-    marginBottom: Spacing.sm,
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
   },
   chartWrapper: {
     alignItems: 'center',
-    marginTop: Spacing.sm,
+    marginTop: theme.spacing.sm,
   },
   barLabel: {
     fontSize: 9,
-    color: Colors.grey500,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
     marginBottom: 2,
   },
   axisLabel: {
     fontSize: 10,
-    color: Colors.grey500,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
   },
   emptyContainer: {
     height: 200,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.grey200,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    ...theme.shadow.card,
   },
   emptyText: {
-    color: Colors.grey500,
-    fontSize: Typography.fontSizes.sm,
+    color: theme.colors.textSecondary,
+    fontFamily: theme.font.body,
+    fontSize: 14,
   },
 });

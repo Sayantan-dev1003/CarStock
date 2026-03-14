@@ -9,6 +9,7 @@ import {
   Dimensions,
   Image
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import Animated, {
@@ -18,7 +19,7 @@ import Animated, {
   withTiming,
   withRepeat
 } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../src/constants/theme';
+import { theme } from '../../src/constants/theme';
 import { AppInput } from '../../src/components/common/AppInput';
 import { AppButton } from '../../src/components/common/AppButton';
 import { authApi } from '../../src/api/auth.api';
@@ -103,14 +104,14 @@ export default function LoginScreen() {
             render={({ field: { onChange, onBlur, value } }) => (
               <AppInput
                 label="Email Address"
-                placeholder="admin@carstock.com"
+                placeholder="Enter email address"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.email?.message}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                leftIcon="email-outline"
+                leftIcon="mail-outline"
               />
             )}
           />
@@ -125,13 +126,13 @@ export default function LoginScreen() {
             render={({ field: { onChange, onBlur, value } }) => (
               <AppInput
                 label="Password"
-                placeholder="********"
+                placeholder="Enter password"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
                 error={errors.password?.message}
                 secureTextEntry
-                leftIcon="lock-outline"
+                leftIcon="lock-closed-outline"
               />
             )}
           />
@@ -155,7 +156,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark,
+    backgroundColor: theme.colors.textPrimary, // Sophisticated near-black
   },
   scrollContent: {
     flexGrow: 1,
@@ -166,64 +167,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.lg,
+    width: 88,
+    height: 88,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: theme.spacing.md,
+    ...theme.shadow.lg,
   },
   logoText: {
-    color: Colors.white,
-    fontSize: Typography.fontSizes.xxl,
-    fontWeight: Typography.fontWeights.bold,
+    color: theme.colors.bgCard,
+    fontSize: 32,
+    fontFamily: theme.font.heading,
   },
   appName: {
-    color: Colors.white,
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
+    color: theme.colors.bgCard,
+    fontSize: 28,
+    fontFamily: theme.font.heading,
+    letterSpacing: -0.5,
   },
   tagline: {
-    color: Colors.grey400,
-    fontSize: Typography.fontSizes.sm,
-    marginTop: Spacing.xs,
+    color: theme.colors.textMuted,
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    marginTop: theme.spacing.xs,
+    opacity: 0.8,
   },
   bottomSection: {
     flex: 1,
     minHeight: height * 0.6,
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: Spacing.xl,
-    ...Shadows.lg,
+    backgroundColor: theme.colors.bg,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    padding: theme.spacing.xl,
+    ...theme.shadow.lg,
   },
   heading: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-    marginBottom: 4,
+    fontSize: 28,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   subheading: {
-    fontSize: Typography.fontSizes.base,
-    color: Colors.grey500,
-    marginBottom: Spacing.xl,
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xl,
   },
   button: {
-    marginTop: Spacing.lg,
+    marginTop: theme.spacing.lg,
   },
   errorText: {
-    color: Colors.error,
-    fontSize: Typography.fontSizes.sm,
-    marginBottom: Spacing.md,
+    color: theme.colors.error,
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
+    marginBottom: theme.spacing.md,
     textAlign: 'center',
-    fontWeight: Typography.fontWeights.medium,
   },
   version: {
     textAlign: 'center',
-    color: Colors.grey400,
-    fontSize: Typography.fontSizes.xs,
+    color: theme.colors.textMuted,
+    fontSize: 12,
+    fontFamily: theme.font.body,
     marginTop: 'auto',
-    paddingTop: Spacing.xl,
+    paddingTop: theme.spacing.xl,
+    opacity: 0.6,
   },
 });

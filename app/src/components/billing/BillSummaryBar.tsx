@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Shadows, BorderRadius } from '../../constants/theme';
+import { theme } from '../../constants/theme';
 import { AppButton } from '../common/AppButton';
 import { formatCurrency } from '../../utils/format';
 import { BillItem } from '../../types/billing.types';
@@ -42,7 +42,7 @@ export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
           </View>
           
           <View style={styles.totalItem}>
-            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalLabel}>Grand Total</Text>
             <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
           </View>
         </View>
@@ -51,8 +51,8 @@ export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
           title={`Checkout (${items.length} ${items.length === 1 ? 'item' : 'items'})`}
           onPress={onProceed}
           size="lg"
-          rightIcon="arrow-right"
-          style={styles.button}
+          rightIcon="arrow-forward"
+          fullWidth
         />
       </View>
     </SafeAreaView>
@@ -61,52 +61,55 @@ export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: Colors.white,
-    ...Shadows.lg,
+    backgroundColor: theme.colors.bgCard,
     borderTopWidth: 1,
-    borderTopColor: Colors.grey100,
+    borderTopColor: theme.colors.border,
+    ...theme.shadow.lg,
   },
   container: {
-    padding: Spacing.base,
+    padding: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
   },
   detailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: Spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   detailItem: {
     flex: 1,
   },
   totalItem: {
-    flex: 1.2,
+    flex: 1.5,
     alignItems: 'flex-end',
   },
   label: {
     fontSize: 10,
-    color: Colors.grey500,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textMuted,
     textTransform: 'uppercase',
     marginBottom: 2,
+    letterSpacing: 0.5,
   },
   value: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.semibold,
-    color: Colors.dark,
+    fontSize: 14,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
   discountValue: {
-    color: Colors.success,
+    color: theme.colors.success,
   },
   totalLabel: {
     fontSize: 10,
-    color: Colors.grey500,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textMuted,
     textTransform: 'uppercase',
     marginBottom: 2,
+    letterSpacing: 0.5,
   },
   totalValue: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
-  },
-  button: {
-    width: '100%',
+    fontSize: 22,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
+    letterSpacing: -0.5,
   },
 });

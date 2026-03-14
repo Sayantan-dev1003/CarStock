@@ -9,8 +9,10 @@ export function useSocket() {
   const setLowStockCount = useInventoryStore((state) => state.setLowStockCount);
 
   useEffect(() => {
-    const socketInstance = io(process.env.EXPO_PUBLIC_SOCKET_URL!, {
-      transports: ['websocket'],
+    const socketUrl = process.env.EXPO_PUBLIC_SOCKET_URL!;
+    console.log('Connecting to socket:', socketUrl);
+
+    const socketInstance = io(socketUrl, {
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,

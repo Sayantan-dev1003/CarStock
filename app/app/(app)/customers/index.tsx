@@ -6,19 +6,22 @@ import {
   FlatList, 
   TouchableOpacity, 
   RefreshControl,
-  SafeAreaView,
+  TextInput,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { customersApi } from '../../../src/api/customers.api';
 import { CustomerCard } from '../../../src/components/customers/CustomerCard';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { EmptyState } from '../../../src/components/common/EmptyState';
-import { AppInput } from '../../../src/components/common/AppInput';
 
 const TAGS = ['ALL', 'REGULAR', 'VIP', 'NEW', 'INACTIVE'];
+
+import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function CustomersScreen() {
   const router = useRouter();
@@ -47,38 +50,47 @@ export default function CustomersScreen() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <AppInput
-          placeholder="Search customers by name or mobile..."
-          value={search}
-          onChangeText={setSearch}
-          leftIcon="account-search"
-          containerStyle={styles.searchBar}
-        />
+    <SafeAreaView style={styles.safeArea}>
+      <AppHeader title="Customers" />
+      <View style={styles.searchSection}>
+        
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
+          <TextInput
+            placeholder="Search customers..."
+            placeholderTextColor={theme.colors.textMuted}
+            value={search}
+            onChangeText={setSearch}
+            style={styles.searchInput}
+          />
+        </View>
+
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
           style={styles.filterBar}
           contentContainerStyle={styles.filterContent}
         >
-          {TAGS.map((tag) => (
-            <TouchableOpacity
-              key={tag}
-              style={[
-                styles.filterChip,
-                selectedTag === tag && styles.activeFilterChip
-              ]}
-              onPress={() => setSelectedTag(tag)}
-            >
-              <Text style={[
-                styles.filterChipText,
-                selectedTag === tag && styles.activeFilterChipText
-              ]}>
-                {tag}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {TAGS.map((tag) => {
+            const isActive = selectedTag === tag;
+            return (
+              <TouchableOpacity
+                key={tag}
+                style={[
+                  styles.filterPill,
+                  isActive ? styles.activeFilterPill : styles.inactiveFilterPill
+                ]}
+                onPress={() => setSelectedTag(tag)}
+              >
+                <Text style={[
+                  styles.filterText,
+                  isActive ? styles.activeFilterText : styles.inactiveFilterText
+                ]}>
+                  {tag}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -93,11 +105,11 @@ export default function CustomersScreen() {
         )}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[Colors.primary]} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[theme.colors.primary]} />
         }
         ListEmptyComponent={
           <EmptyState
-            icon="account-outline"
+            icon="people-outline"
             title="No customers found"
             subtitle="Start by creating a new bill or customer profile"
           />
@@ -108,47 +120,68 @@ export default function CustomersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
-  header: {
-    backgroundColor: Colors.white,
-    paddingTop: Spacing.sm,
-    ...Shadows.sm,
+  searchSection: {
+    backgroundColor: theme.colors.bg,
+    paddingHorizontal: 20,
+    paddingTop: theme.spacing.sm,
   },
-  searchBar: {
-    paddingHorizontal: Spacing.base,
-    marginBottom: Spacing.sm,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: 16,
+    height: 52,
+    marginBottom: theme.spacing.md,
+    ...theme.shadow.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    color: theme.colors.textPrimary,
   },
   filterBar: {
-    paddingBottom: Spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   filterContent: {
-    paddingHorizontal: Spacing.base,
+    paddingRight: 20,
   },
-  filterChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.offWhite,
-    marginRight: Spacing.sm,
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: theme.radius.sm,
+    marginRight: 8,
+  },
+  activeFilterPill: {
+    backgroundColor: theme.colors.primary,
+  },
+  inactiveFilterPill: {
+    backgroundColor: theme.colors.bgCard,
     borderWidth: 1,
-    borderColor: Colors.grey200,
+    borderColor: theme.colors.border,
   },
-  activeFilterChip: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+  filterText: {
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
   },
-  filterChipText: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey600,
-    fontWeight: Typography.fontWeights.medium,
+  activeFilterText: {
+    color: theme.colors.bgCard,
   },
-  activeFilterChipText: {
-    color: Colors.white,
+  inactiveFilterText: {
+    color: theme.colors.textSecondary,
   },
   listContent: {
-    padding: Spacing.base,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
 });

@@ -20,6 +20,7 @@ export interface Product {
   costPrice: number;
   sellingPrice: number;
   reorderLevel: number;
+  description?: string;
   imageUrl?: string;
   isActive: boolean;
   createdAt: string;

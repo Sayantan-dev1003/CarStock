@@ -1,14 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../constants/theme';
-import { AppCard } from '../common/AppCard';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../../constants/theme';
 
 interface MetricCardProps {
   title: string;
   value: string | number;
-  subtitle: string;
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  subtitle?: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
   trend?: {
     value: number;
     isPositive: boolean;
@@ -23,90 +22,88 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   trend,
 }) => {
   return (
-    <AppCard style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name={icon} size={24} color={Colors.primary} />
-        </View>
-        {trend && (
-          <View style={[
-            styles.trendBadge,
-            { backgroundColor: trend.isPositive ? Colors.successLight : Colors.errorLight }
-          ]}>
-            <MaterialCommunityIcons 
-              name={trend.isPositive ? 'arrow-up' : 'arrow-down'} 
-              size={12} 
-              color={trend.isPositive ? Colors.success : Colors.error} 
-            />
-            <Text style={[
-              styles.trendText,
-              { color: trend.isPositive ? Colors.success : Colors.error }
-            ]}>
-              {trend.value}%
-            </Text>
-          </View>
-        )}
-      </View>
-      
+    <View style={styles.card}>
+      <View style={styles.accent} />
       <View style={styles.content}>
+        <View style={styles.header}>
+          <Ionicons name={icon} size={20} color={theme.colors.textSecondary} />
+          {trend && (
+            <View style={styles.trendBadge}>
+              <Ionicons 
+                name={trend.isPositive ? 'arrow-up' : 'arrow-down'} 
+                size={12} 
+                color={trend.isPositive ? theme.colors.success : theme.colors.error} 
+              />
+              <Text style={[
+                styles.trendText,
+                { color: trend.isPositive ? theme.colors.success : theme.colors.error }
+              ]}>
+                {trend.value}%
+              </Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.value}>{value}</Text>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       </View>
-    </AppCard>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    margin: Spacing.xs,
-    borderTopWidth: 4,
-    borderTopColor: Colors.primary,
-    minHeight: 140,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    ...theme.shadow.card,
+  },
+  accent: {
+    width: 4,
+    backgroundColor: theme.colors.primary,
+  },
+  content: {
+    flex: 1,
+    padding: theme.spacing.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.offWhite,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
   },
   trendBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
+    backgroundColor: theme.colors.bg,
+    paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
+    borderRadius: theme.radius.sm,
   },
   trendText: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.fontWeights.bold,
+    fontSize: 11,
+    fontFamily: theme.font.body,
+    fontWeight: '700',
     marginLeft: 2,
   },
-  content: {
-    marginTop: Spacing.xs,
-  },
   value: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 26,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+    letterSpacing: -0.5,
   },
   title: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.semibold,
-    color: Colors.dark,
-    marginTop: Spacing.xs,
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
   },
   subtitle: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
+    fontSize: 11,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginTop: 1,
   },
 });

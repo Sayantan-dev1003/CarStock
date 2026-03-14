@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { theme } from '../../constants/theme';
 
 interface StatusBadgeProps {
   status: string;
@@ -13,53 +13,42 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   variant = 'default',
   style,
 }) => {
-  const getBadgeStyle = (): ViewStyle => {
+  const getColors = () => {
     switch (variant) {
       case 'success':
-        return { backgroundColor: Colors.successLight };
+        return { text: theme.colors.success, bg: theme.colors.success + '15' };
       case 'warning':
-        return { backgroundColor: Colors.warningLight };
+        return { text: theme.colors.warning, bg: theme.colors.warning + '15' };
       case 'error':
-        return { backgroundColor: Colors.errorLight };
+        return { text: theme.colors.error, bg: theme.colors.error + '15' };
       case 'info':
-        return { backgroundColor: Colors.infoLight };
+        return { text: theme.colors.primary, bg: theme.colors.primaryLight };
       default:
-        return { backgroundColor: Colors.grey100 };
+        return { text: theme.colors.textSecondary, bg: theme.colors.bgMuted };
     }
   };
 
-  const getTextStyle = () => {
-    switch (variant) {
-      case 'success':
-        return { color: Colors.success };
-      case 'warning':
-        return { color: Colors.warning };
-      case 'error':
-        return { color: Colors.error };
-      case 'info':
-        return { color: Colors.info };
-      default:
-        return { color: Colors.grey600 };
-    }
-  };
+  const colors = getColors();
 
   return (
-    <View style={[styles.badge, getBadgeStyle(), style]}>
-      <Text style={[styles.text, getTextStyle()]}>{status}</Text>
+    <View style={[styles.badge, { backgroundColor: colors.bg }, style]}>
+      <Text style={[styles.text, { color: colors.text }]}>{status}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   badge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.full,
     alignSelf: 'flex-start',
   },
   text: {
-    fontSize: Typography.fontSizes.xs,
-    fontWeight: Typography.fontWeights.bold,
+    fontSize: 10,
+    fontFamily: theme.font.body,
+    fontWeight: '700',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

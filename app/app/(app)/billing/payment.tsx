@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { billingApi } from '../../../src/api/billing.api';
 import { useBillingStore } from '../../../src/store/billing.store';
@@ -77,11 +77,12 @@ export default function PaymentScreen() {
                     isSelected && styles.selectedCard,
                 ]}
                 onPress={() => setPaymentMode(mode)}
+                activeOpacity={0.7}
             >
                 <MaterialCommunityIcons
                     name={icon as any}
                     size={32}
-                    color={isSelected ? Colors.primary : Colors.grey400}
+                    color={isSelected ? theme.colors.primary : theme.colors.textMuted}
                 />
                 <Text style={[
                     styles.paymentLabel,
@@ -89,6 +90,11 @@ export default function PaymentScreen() {
                 ]}>
                     {label}
                 </Text>
+                {isSelected && (
+                    <View style={styles.selectedIndicator}>
+                        <MaterialCommunityIcons name="check-circle" size={16} color={theme.colors.primary} />
+                    </View>
+                )}
             </TouchableOpacity>
         );
     };
@@ -96,10 +102,10 @@ export default function PaymentScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.summaryHeader}>
-                <Text style={styles.summaryLabel}>Customer: {customerName}</Text>
-                <Text style={styles.summaryLabel}>{items.length} items added</Text>
+                <Text style={styles.summaryInfo}>Customer: {customerName}</Text>
+                <Text style={styles.summaryInfo}>{items.length} items added</Text>
                 <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
-                <Text style={styles.totalLabel}>Total Amount</Text>
+                <Text style={styles.totalLabel}>Grand Total Amount</Text>
             </View>
 
             <View style={styles.content}>
@@ -112,7 +118,7 @@ export default function PaymentScreen() {
 
                 {discount > 0 && (
                     <View style={styles.discountRow}>
-                        <MaterialCommunityIcons name="tag-outline" size={20} color={Colors.success} />
+                        <MaterialCommunityIcons name="tag-outline" size={20} color={theme.colors.success} />
                         <Text style={styles.discountText}>
                             Discount Applied: -{formatCurrency(discount)}
                         </Text>
@@ -134,18 +140,19 @@ export default function PaymentScreen() {
 
             <View style={styles.footer}>
                 <AppButton
-                    title="Confirm Payment"
+                    title="Confirm & Generate Bill"
                     onPress={handleConfirm}
                     disabled={!paymentMode}
                     fullWidth
                     size="lg"
+                    rightIcon="arrow-forward"
                 />
             </View>
 
             {loading && (
                 <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color={Colors.white} />
-                    <Text style={styles.loadingText}>Processing Bill...</Text>
+                    <ActivityIndicator size="large" color="white" />
+                    <Text style={styles.loadingText}>Processing Transaction...</Text>
                 </View>
             )}
         </View>
@@ -155,138 +162,152 @@ export default function PaymentScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.screenBg,
+        backgroundColor: theme.colors.bg,
     },
     summaryHeader: {
-        backgroundColor: Colors.white,
-        padding: Spacing.xl,
+        backgroundColor: theme.colors.bgCard,
+        padding: 32,
         alignItems: 'center',
         borderBottomWidth: 1,
-        borderBottomColor: Colors.grey100,
-        ...Shadows.sm,
+        borderBottomColor: theme.colors.border,
+        ...theme.shadow.sm,
     },
-    summaryLabel: {
-        fontSize: Typography.fontSizes.sm,
-        color: Colors.grey500,
+    summaryInfo: {
+        fontSize: 14,
+        fontFamily: theme.font.body,
+        color: theme.colors.textSecondary,
         marginBottom: 4,
     },
     totalValue: {
-        fontSize: Typography.fontSizes.xxl,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.primary,
-        marginTop: Spacing.sm,
+        fontSize: 32,
+        fontFamily: theme.font.heading,
+        color: theme.colors.primary,
+        marginTop: 12,
+        letterSpacing: -1,
     },
     totalLabel: {
-        fontSize: Typography.fontSizes.xs,
-        color: Colors.grey400,
+        fontSize: 10,
+        fontFamily: theme.font.bodyBold,
+        color: theme.colors.textMuted,
         textTransform: 'uppercase',
         letterSpacing: 1,
-        marginTop: 2,
+        marginTop: 4,
     },
     content: {
         flex: 1,
-        padding: Spacing.lg,
+        padding: 24,
     },
     sectionTitle: {
-        fontSize: Typography.fontSizes.md,
-        fontWeight: Typography.fontWeights.bold,
-        color: Colors.dark,
-        marginBottom: Spacing.lg,
+        fontSize: 16,
+        fontFamily: theme.font.bodyBold,
+        color: theme.colors.textPrimary,
+        marginBottom: 20,
     },
     paymentGrid: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: Spacing.xl,
+        marginBottom: 32,
     },
     paymentCard: {
         width: '30%',
         aspectRatio: 1,
-        backgroundColor: Colors.white,
-        borderRadius: BorderRadius.md,
-        borderWidth: 1.5,
-        borderColor: Colors.grey200,
+        backgroundColor: theme.colors.bgCard,
+        borderRadius: theme.radius.md,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
         alignItems: 'center',
         justifyContent: 'center',
-        ...Shadows.sm,
+        ...theme.shadow.sm,
+        position: 'relative',
     },
     selectedCard: {
-        borderColor: Colors.primary,
-        backgroundColor: '#FFF1F2',
+        borderColor: theme.colors.primary,
+        backgroundColor: theme.colors.primaryLight,
     },
     paymentLabel: {
-        fontSize: Typography.fontSizes.sm,
-        fontWeight: Typography.fontWeights.medium,
-        color: Colors.grey600,
-        marginTop: Spacing.sm,
+        fontSize: 14,
+        fontFamily: theme.font.bodyMedium,
+        color: theme.colors.textSecondary,
+        marginTop: 8,
     },
     selectedLabel: {
-        color: Colors.primary,
-        fontWeight: Typography.fontWeights.bold,
+        color: theme.colors.primary,
+        fontFamily: theme.font.bodyBold,
+    },
+    selectedIndicator: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
     },
     discountRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.successLight,
-        padding: Spacing.md,
-        borderRadius: BorderRadius.md,
-        marginBottom: Spacing.xl,
+        backgroundColor: theme.colors.success + '15',
+        padding: 16,
+        borderRadius: theme.radius.md,
+        marginBottom: 32,
     },
     discountText: {
-        fontSize: Typography.fontSizes.sm,
-        color: Colors.success,
-        fontWeight: Typography.fontWeights.bold,
-        marginLeft: Spacing.sm,
+        fontSize: 14,
+        fontFamily: theme.font.bodyBold,
+        color: theme.colors.success,
+        marginLeft: 12,
     },
     totalBadgeContainer: {
         alignItems: 'center',
-        marginTop: Spacing.md,
+        marginTop: 8,
     },
     totalBadge: {
-        backgroundColor: Colors.dark,
-        paddingVertical: Spacing.lg,
-        paddingHorizontal: Spacing.xxl,
-        borderRadius: BorderRadius.xl,
+        backgroundColor: theme.colors.textPrimary, // Very dark background
+        paddingVertical: 24,
+        paddingHorizontal: 40,
+        borderRadius: theme.radius.lg,
         alignItems: 'center',
-        ...Shadows.lg,
+        ...theme.shadow.lg,
     },
     badgeLabel: {
-        color: Colors.grey400,
-        fontSize: Typography.fontSizes.xs,
+        color: theme.colors.textMuted,
+        fontSize: 10,
+        fontFamily: theme.font.bodyBold,
         textTransform: 'uppercase',
-        marginBottom: 4,
+        marginBottom: 6,
+        letterSpacing: 0.5,
     },
     badgeValue: {
-        color: Colors.white,
-        fontSize: Typography.fontSizes.xl,
-        fontWeight: Typography.fontWeights.bold,
+        color: theme.colors.bgCard,
+        fontSize: 24,
+        fontFamily: theme.font.heading,
     },
     modeBadge: {
-        backgroundColor: Colors.primary,
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginTop: Spacing.sm,
+        backgroundColor: theme.colors.primary,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: theme.radius.sm,
+        marginTop: 12,
     },
     modeBadgeText: {
-        color: Colors.white,
-        fontSize: 10,
-        fontWeight: Typography.fontWeights.bold,
+        color: theme.colors.bgCard,
+        fontSize: 11,
+        fontFamily: theme.font.bodyBold,
+        textTransform: 'uppercase',
     },
     footer: {
-        padding: Spacing.lg,
-        backgroundColor: Colors.white,
+        padding: 24,
+        backgroundColor: theme.colors.bgCard,
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.border,
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'rgba(28, 25, 23, 0.7)',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
     },
     loadingText: {
-        color: Colors.white,
-        marginTop: Spacing.md,
-        fontSize: Typography.fontSizes.md,
-        fontWeight: Typography.fontWeights.medium,
+        color: 'white',
+        marginTop: 16,
+        fontSize: 16,
+        fontFamily: theme.font.bodySemiBold,
     },
 });

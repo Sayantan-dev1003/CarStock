@@ -13,7 +13,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { AppInput } from '../../../src/components/common/AppInput';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { AppCard } from '../../../src/components/common/AppCard';
@@ -22,7 +22,7 @@ import { customersApi } from '../../../src/api/customers.api';
 import { useBillingStore } from '../../../src/store/billing.store';
 import { Customer, Vehicle } from '../../../src/types/customer.types';
 import { formatCurrency, formatDate } from '../../../src/utils/format';
-import { carDataCache } from '../../../src/utils/carDataCache';
+import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function CustomerSelectScreen() {
   const router = useRouter();
@@ -99,21 +99,22 @@ export default function CustomerSelectScreen() {
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <AppHeader title="Select Customer" showBackButton />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Customer Mobile Number</Text>
+          <Text style={styles.sectionTitle}>Mobile Number</Text>
           <AppInput
             placeholder="Enter 10-digit mobile number"
             value={mobile}
             onChangeText={setMobile}
             keyboardType="phone-pad"
             maxLength={10}
-            leftIcon="phone"
+            leftIcon="call-outline"
             containerStyle={styles.mobileInput}
           />
           {lookupLoading && (
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator color={Colors.primary} />
+              <ActivityIndicator color={theme.colors.primary} />
             </View>
           )}
         </View>
@@ -123,7 +124,7 @@ export default function CustomerSelectScreen() {
             <Text style={styles.sectionTitle}>Customer Profile</Text>
             <AppCard style={styles.profileCard}>
               <View style={styles.profileHeader}>
-                <View style={[styles.avatar, { backgroundColor: Colors.primary + '15' }]}>
+                <View style={[styles.avatar, { backgroundColor: theme.colors.primaryLight }]}>
                   <Text style={styles.avatarText}>{foundCustomer.name.charAt(0).toUpperCase()}</Text>
                 </View>
                 <View style={styles.profileInfo}>
@@ -136,17 +137,18 @@ export default function CustomerSelectScreen() {
               </View>
               <View style={styles.statsRow}>
                 <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Total Spend</Text>
                   <Text style={styles.statValue}>{formatCurrency(foundCustomer.totalSpend)}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Previous Bills</Text>
+                  <Text style={styles.statLabel}>Bills</Text>
                   <Text style={styles.statValue}>{(foundCustomer.bills || []).length}</Text>
                 </View>
               </View>
             </AppCard>
 
-            <Text style={[styles.sectionTitle, { marginTop: Spacing.xl }]}>Select Vehicle (Optional)</Text>
+            <Text style={[styles.sectionTitle, { marginTop: 32 }]}>Select Vehicle (Optional)</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.vehicleScroll}>
               <TouchableOpacity 
                 style={[styles.skipCard, !selectedVehicleId && styles.selectedSkip]}
@@ -155,7 +157,7 @@ export default function CustomerSelectScreen() {
                 <MaterialCommunityIcons 
                   name="car-off" 
                   size={24} 
-                  color={!selectedVehicleId ? Colors.primary : Colors.grey400} 
+                  color={!selectedVehicleId ? theme.colors.primary : theme.colors.textMuted} 
                 />
                 <Text style={[styles.skipText, !selectedVehicleId && styles.selectedSkipText]}>Skip Vehicle</Text>
               </TouchableOpacity>
@@ -175,6 +177,7 @@ export default function CustomerSelectScreen() {
               onPress={handleContinue}
               size="lg"
               style={styles.continueBtn}
+              rightIcon="arrow-forward"
             />
           </View>
         )}
@@ -182,7 +185,7 @@ export default function CustomerSelectScreen() {
         {showNewForm && (
           <View style={styles.section}>
             <View style={styles.newHeader}>
-              <MaterialCommunityIcons name="account-plus-outline" size={24} color={Colors.primary} />
+              <MaterialCommunityIcons name="account-plus-outline" size={24} color={theme.colors.primary} />
               <View style={styles.newHeaderInfo}>
                 <Text style={styles.newTitle}>New Customer</Text>
                 <Text style={styles.newSubtitle}>Create a profile to continue</Text>
@@ -200,7 +203,7 @@ export default function CustomerSelectScreen() {
                   value={value}
                   onChangeText={onChange}
                   error={errors.name?.message}
-                  leftIcon="account-outline"
+                  leftIcon="person-outline"
                 />
               )}
             />
@@ -224,7 +227,7 @@ export default function CustomerSelectScreen() {
                   error={errors.email?.message}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  leftIcon="email-outline"
+                  leftIcon="mail-outline"
                 />
               )}
             />
@@ -246,19 +249,23 @@ export default function CustomerSelectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
   scrollContent: {
-    padding: Spacing.base,
+    padding: 20,
+    paddingBottom: 40,
   },
   section: {
-    marginBottom: Spacing.lg,
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
-    marginBottom: Spacing.md,
+    fontSize: 14,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 16,
+    marginLeft: 4,
   },
   mobileInput: {
     marginBottom: 0,
@@ -269,58 +276,62 @@ const styles = StyleSheet.create({
     top: 48,
   },
   profileCard: {
-    padding: Spacing.md,
+    padding: 20,
+    borderRadius: theme.radius.lg,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 20,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.md,
+    marginRight: 16,
   },
   avatarText: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 22,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
   },
   profileInfo: {
     flex: 1,
   },
   customerName: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 18,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
   },
   customerMobile: {
-    fontSize: Typography.fontSizes.base,
-    color: Colors.grey500,
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   tagBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.grey100,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 6,
+    backgroundColor: theme.colors.bgMuted,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.sm,
+    marginTop: 8,
   },
   tagText: {
     fontSize: 10,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.grey600,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   statsRow: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: Colors.grey100,
-    paddingTop: Spacing.md,
-    marginTop: Spacing.sm,
+    borderTopColor: theme.colors.bgMuted,
+    paddingTop: 20,
+    marginTop: 8,
   },
   statItem: {
     flex: 1,
@@ -328,69 +339,75 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: Colors.grey100,
+    backgroundColor: theme.colors.bgMuted,
   },
   statLabel: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey400,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
     marginBottom: 4,
   },
   statValue: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 16,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
   },
   vehicleScroll: {
     flexDirection: 'row',
-    marginBottom: Spacing.xl,
+    marginBottom: 32,
+    paddingVertical: 8,
   },
   skipCard: {
-    width: 120,
-    height: 128,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.white,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    width: 130,
+    height: 140,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.bgCard,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.sm,
-    ...Shadows.sm,
+    marginRight: 12,
+    ...theme.shadow.sm,
   },
   selectedSkip: {
-    borderColor: Colors.primary,
-    backgroundColor: '#FFF1F2',
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
   },
   skipText: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
-    marginTop: 8,
-    fontWeight: Typography.fontWeights.medium,
+    fontSize: 12,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textSecondary,
+    marginTop: 12,
   },
   selectedSkipText: {
-    color: Colors.primary,
+    color: theme.colors.primary,
+    fontFamily: theme.font.bodyBold,
   },
   continueBtn: {
-    marginTop: Spacing.lg,
+    marginTop: 24,
   },
   newHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    backgroundColor: '#FFF1F2',
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.lg,
+    padding: 16,
+    backgroundColor: theme.colors.primaryLight,
+    borderRadius: theme.radius.md,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(180, 83, 9, 0.1)',
   },
   newHeaderInfo: {
-    marginLeft: Spacing.md,
+    marginLeft: 16,
   },
   newTitle: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 16,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.primary,
   },
   newSubtitle: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey600,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
 });

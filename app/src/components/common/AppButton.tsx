@@ -9,8 +9,8 @@ import {
   View,
   StyleProp,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../../constants/theme';
 
 interface AppButtonProps {
   title: string;
@@ -21,8 +21,8 @@ interface AppButtonProps {
   disabled?: boolean;
   fullWidth?: boolean;
   icon?: React.ReactNode;
-  leftIcon?: string;
-  rightIcon?: string;
+  leftIcon?: React.ComponentProps<typeof Ionicons>['name'];
+  rightIcon?: React.ComponentProps<typeof Ionicons>['name'];
   style?: StyleProp<ViewStyle>;
 }
 
@@ -42,39 +42,55 @@ export const AppButton: React.FC<AppButtonProps> = ({
   const getVariantStyle = (): ViewStyle => {
     switch (variant) {
       case 'secondary':
-        return { backgroundColor: Colors.dark };
+        return { backgroundColor: theme.colors.textPrimary };
       case 'outline':
         return {
           backgroundColor: 'transparent',
           borderWidth: 1.5,
-          borderColor: Colors.primary,
+          borderColor: theme.colors.primary,
         };
       case 'danger':
-        return { backgroundColor: Colors.errorLight };
+        return { backgroundColor: '#FEE2E2' }; // soft red
       default:
-        return { backgroundColor: Colors.primary };
+        return { backgroundColor: theme.colors.primary };
     }
   };
 
   const getTextStyle = (): TextStyle => {
     switch (variant) {
       case 'outline':
-        return { color: Colors.primary };
+        return { color: theme.colors.primary };
       case 'danger':
-        return { color: Colors.error };
+        return { color: theme.colors.error };
       default:
-        return { color: Colors.white };
+        return { color: 'white' };
     }
   };
 
   const getSizeStyle = (): ViewStyle => {
     switch (size) {
       case 'sm':
-        return { paddingVertical: Spacing.xs, paddingHorizontal: Spacing.base };
+        return { paddingVertical: 8, paddingHorizontal: 16 };
       case 'lg':
-        return { paddingVertical: Spacing.base, paddingHorizontal: Spacing.xl };
+        return { paddingVertical: 16, paddingHorizontal: 24 };
       default:
-        return { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg };
+        return { paddingVertical: 12, paddingHorizontal: 20 };
+    }
+  };
+
+  const getTextFontSize = () => {
+    switch (size) {
+      case 'sm': return 13;
+      case 'lg': return 17;
+      default: return 15;
+    }
+  };
+
+  const getIconSize = () => {
+    switch (size) {
+      case 'sm': return 18;
+      case 'lg': return 26;
+      default: return 22;
     }
   };
 
@@ -93,25 +109,31 @@ export const AppButton: React.FC<AppButtonProps> = ({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' || variant === 'danger' ? Colors.primary : Colors.white} />
+        <ActivityIndicator color={variant === 'outline' || variant === 'danger' ? theme.colors.primary : 'white'} />
       ) : (
         <>
           {leftIcon && (
-            <MaterialCommunityIcons 
-              name={leftIcon as any} 
-              size={size === 'sm' ? 16 : 20} 
-              color={getTextStyle().color} 
-              style={{ marginRight: Spacing.xs }}
+            <Ionicons 
+              name={leftIcon} 
+              size={getIconSize()} 
+              color={getTextStyle().color as string} 
+              style={{ marginRight: 8 }}
             />
           )}
           {icon}
-          <Text style={[styles.text, getTextStyle()]}>{title}</Text>
+          <Text style={[
+            styles.text, 
+            getTextStyle(), 
+            { fontSize: getTextFontSize() }
+          ]}>
+            {title}
+          </Text>
           {rightIcon && (
-            <MaterialCommunityIcons 
-              name={rightIcon as any} 
-              size={size === 'sm' ? 16 : 20} 
-              color={getTextStyle().color} 
-              style={{ marginLeft: Spacing.xs }}
+            <Ionicons 
+              name={rightIcon} 
+              size={getIconSize()} 
+              color={getTextStyle().color as string} 
+              style={{ marginLeft: 8 }}
             />
           )}
         </>
@@ -122,15 +144,14 @@ export const AppButton: React.FC<AppButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: BorderRadius.md,
+    borderRadius: theme.radius.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.semibold,
-    marginLeft: Spacing.xs,
+    fontFamily: theme.font.body,
+    fontWeight: '600',
   },
   fullWidth: {
     width: '100%',

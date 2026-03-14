@@ -1,19 +1,14 @@
 import React, { useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFonts } from 'expo-font';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../../src/constants/theme';
+import { theme } from '../../src/constants/theme';
 import { useAuthStore } from '../../src/store/auth.store';
 
 export default function AppLayout() {
   const { isAuthenticated, isPinVerified } = useAuthStore();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
-  const [fontsLoaded] = useFonts({
-    ...MaterialCommunityIcons.font,
-  });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -23,25 +18,32 @@ export default function AppLayout() {
     }
   }, [isAuthenticated, isPinVerified]);
 
-  if (!fontsLoaded) return null;
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.grey400,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarStyle: {
-          backgroundColor: Colors.white,
-          height: 60 + insets.bottom,
-          paddingBottom: insets.bottom + 8,
+          height: 68 + insets.bottom,
           paddingTop: 5,
-          borderTopWidth: 1,
-          borderTopColor: Colors.grey200,
-          elevation: 8,
+          paddingBottom: insets.bottom,
+          backgroundColor: theme.colors.bgCard,
+          borderTopWidth: 0,
+          borderTopColor: theme.colors.border,
+          ...theme.shadow.sm,
+        },
+        tabBarItemStyle: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 4,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontFamily: theme.font.bodyMedium,
+          marginTop: 2,
+          marginBottom: 4,
         },
         tabBarHideOnKeyboard: true,
         headerShown: false,
@@ -51,17 +53,17 @@ export default function AppLayout() {
         name="dashboard/index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="view-dashboard" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "grid" : "grid-outline"} size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="billing/index"
         options={{
-          title: 'New Bill',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="receipt" size={size} color={color} />
+          title: 'Billing',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "receipt" : "receipt-outline"} size={24} color={color} />
           ),
         }}
       />
@@ -69,8 +71,8 @@ export default function AppLayout() {
         name="inventory/index"
         options={{
           title: 'Inventory',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="package-variant-closed" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "cube" : "cube-outline"} size={24} color={color} />
           ),
         }}
       />
@@ -78,8 +80,8 @@ export default function AppLayout() {
         name="customers/index"
         options={{
           title: 'Customers',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-group" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "people" : "people-outline"} size={24} color={color} />
           ),
         }}
       />
@@ -87,8 +89,8 @@ export default function AppLayout() {
         name="settings/index"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cog" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "settings" : "settings-outline"} size={24} color={color} />
           ),
         }}
       />
@@ -109,19 +111,11 @@ export default function AppLayout() {
         options={{ tabBarButton: () => null }}
       />
       <Tabs.Screen
-        name="inventory/product-detail"
-        options={{ tabBarButton: () => null }}
-      />
-      <Tabs.Screen
         name="inventory/add-product"
         options={{ tabBarButton: () => null }}
       />
       <Tabs.Screen
         name="inventory/[id]"
-        options={{ tabBarButton: () => null }}
-      />
-      <Tabs.Screen
-        name="customers/customer-detail"
         options={{ tabBarButton: () => null }}
       />
       <Tabs.Screen

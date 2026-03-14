@@ -11,13 +11,14 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { customersApi } from '../../../src/api/customers.api';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { VehicleCard } from '../../../src/components/customers/VehicleCard';
 import { StatusBadge } from '../../../src/components/common/StatusBadge';
 import { formatCurrency, formatDate, formatBillNumber } from '../../../src/utils/format';
+import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function CustomerDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -47,6 +48,7 @@ export default function CustomerDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AppHeader title="Customer Profile" showBackButton />
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
         {/* Profile Card */}
         <View style={styles.profileHeader}>
@@ -68,25 +70,25 @@ export default function CustomerDetailScreen() {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{formatCurrency(customer.totalSpend)}</Text>
-              <Text style={styles.statLabel}>Total Spent</Text>
+              <Text style={styles.statLabel}>Total Revenue</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.actionsBar}>
           <AppButton
-            title="Service Reminder"
+            title="Send Reminder"
             onPress={() => reminderMutation.mutate()}
             variant="outline"
-            leftIcon="bell-ring-outline"
+            leftIcon="notifications-outline"
             loading={reminderMutation.isPending}
             style={styles.actionBtn}
           />
           <AppButton
-            title="New Bill"
+            title="Create Bill"
             onPress={() => router.push({ pathname: '/(app)/billing', params: { customerId: customer.id } })}
-            leftIcon="plus"
-            style={[styles.actionBtn, { marginLeft: Spacing.sm }]}
+            leftIcon="add"
+            style={[styles.actionBtn, { marginLeft: 12 }]}
           />
         </View>
 
@@ -105,7 +107,7 @@ export default function CustomerDetailScreen() {
             onPress={() => setActiveTab('bills')}
           >
             <Text style={[styles.tabText, activeTab === 'bills' && styles.activeTabText]}>
-              Bills ({customer.bills?.length || 0})
+              Billing History ({customer.bills?.length || 0})
             </Text>
           </TouchableOpacity>
         </View>
@@ -115,12 +117,14 @@ export default function CustomerDetailScreen() {
           {activeTab === 'vehicles' ? (
             <View>
               {customer.vehicles && customer.vehicles.length > 0 ? (
-                customer.vehicles.map((vehicle: any) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                ))
+                <View style={styles.vehicleList}>
+                  {customer.vehicles.map((vehicle: any) => (
+                    <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                  ))}
+                </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <MaterialCommunityIcons name="car-off" size={48} color={Colors.grey200} />
+                  <MaterialCommunityIcons name="car-off" size={48} color={theme.colors.bgMuted} />
                   <Text style={styles.emptyText}>No vehicles registered</Text>
                 </View>
               )}
@@ -129,7 +133,12 @@ export default function CustomerDetailScreen() {
             <View>
               {customer.bills && customer.bills.length > 0 ? (
                 customer.bills.map((bill: any) => (
-                  <TouchableOpacity key={bill.id} style={styles.billCard}>
+                  <TouchableOpacity 
+                    key={bill.id} 
+                    style={styles.billCard}
+                    activeOpacity={0.7}
+                    onPress={() => router.push({ pathname: '/(app)/billing/bill-success', params: { id: bill.id } })}
+                  >
                     <View style={styles.billMain}>
                       <View>
                         <Text style={styles.billNumber}>{formatBillNumber(bill.billNumber)}</Text>
@@ -142,22 +151,22 @@ export default function CustomerDetailScreen() {
                         <MaterialCommunityIcons 
                           name="email-check" 
                           size={14} 
-                          color={bill.emailSent ? Colors.success : Colors.grey300} 
+                          color={bill.emailSent ? theme.colors.success : theme.colors.textMuted} 
                         />
                         <MaterialCommunityIcons 
                           name="whatsapp" 
                           size={14} 
-                          color={bill.whatsappSent ? Colors.success : Colors.grey300} 
-                          style={{ marginLeft: 8 }}
+                          color={bill.whatsappSent ? theme.colors.success : theme.colors.textMuted} 
+                          style={{ marginLeft: 12 }}
                         />
                       </View>
-                      <Text style={styles.viewLink}>View Details</Text>
+                      <Text style={styles.viewLink}>View Invoice</Text>
                     </View>
                   </TouchableOpacity>
                 ))
               ) : (
                 <View style={styles.emptyState}>
-                  <MaterialCommunityIcons name="receipt-outline" size={48} color={Colors.grey200} />
+                  <MaterialCommunityIcons name="receipt-outline" size={48} color={theme.colors.bgMuted} />
                   <Text style={styles.emptyText}>No bill history found</Text>
                 </View>
               )}
@@ -172,161 +181,172 @@ export default function CustomerDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.screenBg,
+    backgroundColor: theme.colors.bg,
   },
   scrollContent: {
     flexGrow: 1,
   },
   profileHeader: {
-    backgroundColor: Colors.white,
-    padding: Spacing.xl,
+    backgroundColor: theme.colors.bgCard,
+    padding: 24,
     alignItems: 'center',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
-    ...Shadows.sm,
+    ...theme.shadow.card,
   },
   avatar: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primary + '15',
+    borderRadius: 24,
+    backgroundColor: theme.colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
   avatarText: {
-    fontSize: 32,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 28,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
   },
   name: {
-    fontSize: Typography.fontSizes.xl,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 22,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   mobile: {
-    fontSize: Typography.fontSizes.base,
-    color: Colors.grey500,
-    marginBottom: Spacing.md,
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    marginBottom: 16,
   },
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: 24,
   },
   emailText: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey400,
-    marginLeft: Spacing.md,
+    fontSize: 13,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginLeft: 12,
   },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.offWhite,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
+    backgroundColor: theme.colors.bgMuted,
+    borderRadius: theme.radius.lg,
+    padding: 20,
     width: '100%',
-    marginTop: Spacing.sm,
+    marginTop: 8,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
   statValue: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 18,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
   },
   statLabel: {
     fontSize: 10,
-    color: Colors.grey500,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textSecondary,
     textTransform: 'uppercase',
-    marginTop: 4,
+    marginTop: 6,
+    letterSpacing: 0.5,
   },
   statDivider: {
     width: 1,
-    backgroundColor: Colors.grey200,
+    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   actionsBar: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
+    paddingHorizontal: 24,
+    marginTop: 24,
   },
   actionBtn: {
     flex: 1,
   },
   tabBar: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.xl,
-    marginTop: Spacing.xl,
+    paddingHorizontal: 24,
+    marginTop: 32,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.grey100,
+    borderBottomColor: theme.colors.bgMuted,
   },
   tab: {
-    paddingVertical: Spacing.md,
-    marginRight: Spacing.xl,
-    borderBottomWidth: 3,
+    paddingVertical: 12,
+    marginRight: 24,
+    borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: Colors.primary,
+    borderBottomColor: theme.colors.primary,
   },
   tabText: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.medium,
-    color: Colors.grey500,
+    fontSize: 14,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textSecondary,
   },
   activeTabText: {
-    color: Colors.primary,
-    fontWeight: Typography.fontWeights.bold,
+    color: theme.colors.primary,
+    fontFamily: theme.font.bodyBold,
   },
   tabContent: {
-    padding: Spacing.lg,
+    padding: 24,
+  },
+  vehicleList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   billCard: {
-    backgroundColor: Colors.white,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
-    ...Shadows.sm,
+    backgroundColor: theme.colors.bgCard,
+    padding: 16,
+    borderRadius: theme.radius.md,
+    marginBottom: 16,
+    ...theme.shadow.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   billMain: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
   billNumber: {
-    fontSize: Typography.fontSizes.sm,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 14,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textPrimary,
   },
   billDate: {
-    fontSize: 10,
-    color: Colors.grey400,
+    fontSize: 11,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
     marginTop: 2,
   },
   billAmount: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 16,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.primary,
   },
   billFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: Colors.grey100,
-    paddingTop: Spacing.sm,
+    borderTopColor: theme.colors.bgMuted,
+    paddingTop: 12,
   },
   deliveryStatus: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   viewLink: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.primary,
-    fontWeight: Typography.fontWeights.bold,
+    fontSize: 12,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.primary,
   },
   emptyState: {
     alignItems: 'center',
@@ -334,8 +354,9 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey400,
-    marginTop: Spacing.md,
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginTop: 16,
   },
 });

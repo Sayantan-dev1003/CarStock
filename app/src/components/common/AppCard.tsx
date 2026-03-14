@@ -1,12 +1,12 @@
 import React from 'react';
-import { TouchableOpacity, View, StyleSheet, ViewStyle } from 'react-native';
-import { Colors, Shadows, BorderRadius, Spacing } from '../../constants/theme';
+import { TouchableOpacity, View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { theme } from '../../constants/theme';
 
 interface AppCardProps {
   children: React.ReactNode;
   onPress?: () => void;
   variant?: 'elevated' | 'outlined';
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const AppCard: React.FC<AppCardProps> = ({
@@ -19,11 +19,11 @@ export const AppCard: React.FC<AppCardProps> = ({
 
   return (
     <Container
-      activeOpacity={0.9}
+      activeOpacity={0.7}
       onPress={onPress}
       style={[
         styles.card,
-        variant === 'elevated' ? Shadows.md : styles.outlined,
+        variant === 'elevated' ? theme.shadow.card : styles.outlined,
         style,
       ]}
     >
@@ -34,13 +34,13 @@ export const AppCard: React.FC<AppCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    marginVertical: Spacing.xs,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    marginVertical: 4,
   },
   outlined: {
     borderWidth: 1,
-    borderColor: Colors.grey200,
+    borderColor: theme.colors.bgMuted,
   },
 });
