@@ -1,12 +1,19 @@
 import React, { useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/theme';
 import { useAuthStore } from '../../src/store/auth.store';
 
 export default function AppLayout() {
   const { isAuthenticated, isPinVerified } = useAuthStore();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const [fontsLoaded] = useFonts({
+    ...MaterialCommunityIcons.font,
+  });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -16,16 +23,27 @@ export default function AppLayout() {
     }
   }, [isAuthenticated, isPinVerified]);
 
+  if (!fontsLoaded) return null;
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.tabBarActive,
-        tabBarInactiveTintColor: Colors.tabBarInactive,
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.grey400,
         tabBarStyle: {
-          backgroundColor: Colors.tabBar,
-          height: 60,
-          paddingBottom: 8,
+          backgroundColor: Colors.white,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 8,
+          paddingTop: 5,
+          borderTopWidth: 1,
+          borderTopColor: Colors.grey200,
+          elevation: 8,
         },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
+        tabBarHideOnKeyboard: true,
         headerShown: false,
       }}
     >
@@ -73,6 +91,42 @@ export default function AppLayout() {
             <MaterialCommunityIcons name="cog" size={size} color={color} />
           ),
         }}
+      />
+
+      {/* Hide all nested screens from tab bar
+          Using tabBarButton: () => null keeps
+          parent tab highlighted */}
+      <Tabs.Screen
+        name="billing/customer-select"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="billing/payment"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="billing/bill-success"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="inventory/product-detail"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="inventory/add-product"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="inventory/[id]"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="customers/customer-detail"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="customers/[id]"
+        options={{ tabBarButton: () => null }}
       />
     </Tabs>
   );

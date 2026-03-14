@@ -145,7 +145,7 @@ export default function SettingsScreen() {
             toggleBiometrics
           )}
           {renderSettingItem(
-            'form-select_lock',
+            'lock-outline',
             'Change App PIN',
             'Update your 4-digit security PIN',
             null,

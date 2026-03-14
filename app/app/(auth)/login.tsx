@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
-  Platform, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Dimensions,
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSequence, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
   withTiming,
   withRepeat
 } from 'react-native-reanimated';
@@ -71,7 +71,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -93,7 +93,7 @@ export default function LoginScreen() {
           <Controller
             control={control}
             name="email"
-            rules={{ 
+            rules={{
               required: 'Email is required',
               pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -118,7 +118,7 @@ export default function LoginScreen() {
           <Controller
             control={control}
             name="password"
-            rules={{ 
+            rules={{
               required: 'Password is required',
               minLength: { value: 6, message: 'Password must be at least 6 characters' }
             }}

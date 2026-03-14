@@ -1,11 +1,11 @@
 import client from './client';
 import { Bill, CreateBillPayload } from '../types/billing.types';
-import { ApiResponse, PaginatedResponse } from '../types/api.types';
+import { PaginatedResponse } from '../types/api.types';
 
 export const billingApi = {
   createBill: async (payload: CreateBillPayload): Promise<Bill> => {
-    const response = await client.post<ApiResponse<Bill>>('/bills', payload);
-    return response.data.data;
+    const response = await client.post('/bills', payload);
+    return response.data;
   },
 
   getBills: async (
@@ -14,26 +14,26 @@ export const billingApi = {
     startDate?: string,
     endDate?: string
   ): Promise<PaginatedResponse<Bill>> => {
-    const response = await client.get<ApiResponse<PaginatedResponse<Bill>>>('/bills', {
+    const response = await client.get('/bills', {
       params: { page, limit, startDate, endDate },
     });
-    return response.data.data;
+    return response.data ?? { data: [], total: 0, page: 1, limit: 10 };
   },
 
   getBill: async (id: string): Promise<Bill> => {
-    const response = await client.get<ApiResponse<Bill>>(`/bills/${id}`);
-    return response.data.data;
+    const response = await client.get(`/bills/${id}`);
+    return response.data;
   },
 
   resendBill: async (id: string): Promise<{ message: string; billId: string }> => {
-    const response = await client.post<ApiResponse<{ message: string; billId: string }>>(`/bills/${id}/resend`);
-    return response.data.data;
+    const response = await client.post(`/bills/${id}/resend`);
+    return response.data;
   },
 
   getCustomerBills: async (customerId: string, page: number, limit: number): Promise<PaginatedResponse<Bill>> => {
-    const response = await client.get<ApiResponse<PaginatedResponse<Bill>>>(`/bills/customer/${customerId}`, {
+    const response = await client.get(`/bills/customer/${customerId}`, {
       params: { page, limit },
     });
-    return response.data.data;
+    return response.data ?? { data: [], total: 0, page: 1, limit: 10 };
   },
 };

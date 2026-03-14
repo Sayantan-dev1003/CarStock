@@ -75,7 +75,7 @@ client.interceptors.response.use(
         refreshToken,
       });
 
-      const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+      const { accessToken, refreshToken: newRefreshToken } = response.data;
 
       await storage.setAccessToken(accessToken);
       await storage.setRefreshToken(newRefreshToken);
