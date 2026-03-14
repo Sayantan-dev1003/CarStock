@@ -46,32 +46,34 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onPress })
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.md,
+    borderRadius: 20,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    ...theme.shadow.card,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadow.sm,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     backgroundColor: theme.colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
   avatarText: {
-    fontSize: 16,
-    fontFamily: theme.font.bodyBold,
+    fontSize: 18,
+    fontFamily: theme.font.heading,
     color: theme.colors.primary,
   },
   content: {
     flex: 1,
   },
   name: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textPrimary,
     marginBottom: 2,
@@ -79,7 +81,7 @@ const styles = StyleSheet.create({
   phone: {
     fontSize: 13,
     fontFamily: theme.font.body,
-    color: theme.colors.textMuted,
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   statsRow: {
@@ -89,11 +91,11 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 12,
     fontFamily: theme.font.bodyMedium,
-    color: theme.colors.textSecondary,
+    color: theme.colors.primary,
   },
   statsDivider: {
     fontSize: 12,
     color: theme.colors.border,
-    marginHorizontal: 6,
+    marginHorizontal: 8,
   },
 });
