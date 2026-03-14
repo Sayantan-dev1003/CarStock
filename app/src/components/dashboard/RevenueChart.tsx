@@ -28,39 +28,40 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
     value: item.revenue,
     label: item.day,
     frontColor: theme.colors.primary,
-    topLabelComponent: () => (
-      <Text style={styles.barLabel}>
-        {item.revenue > 0 ? (item.revenue / 1000).toFixed(1) + 'k' : ''}
-      </Text>
-    ),
+    gradientColor: theme.colors.primaryDark,
+    showGradient: true,
   }));
 
   const maxValue = Math.max(...data.map((d) => d.revenue), 1);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Revenue This Week</Text>
+      <View style={styles.chartHeader}>
+        <Text style={styles.title}>Weekly Performance</Text>
+        <View style={styles.legendRow}>
+          <View style={[styles.legendDot, { backgroundColor: theme.colors.primary }]} />
+          <Text style={styles.legendText}>Revenue</Text>
+        </View>
+      </View>
       <View style={styles.chartWrapper}>
         <BarChart
           data={chartData}
           width={width - 20 * 2 - theme.spacing.md * 2 - 20}
-          height={180}
-          barWidth={32}
-          spacing={12}
+          height={160}
+          barWidth={28}
+          spacing={16}
           roundedTop
-          roundedBottom={false}
           hideRules={false}
-          rulesColor={theme.colors.bgMuted}
-          rulesType="solid"
-          noOfSections={4}
+          rulesColor={theme.colors.border}
+          rulesType="dashed"
+          noOfSections={3}
           maxValue={Math.ceil(maxValue * 1.2)}
           yAxisThickness={0}
-          xAxisThickness={1}
-          xAxisColor={theme.colors.bgMuted}
+          xAxisThickness={0}
           yAxisTextStyle={styles.axisLabel}
           xAxisLabelTextStyle={styles.axisLabel}
           isAnimated
-          animationDuration={600}
+          animationDuration={800}
         />
       </View>
     </View>
@@ -70,42 +71,58 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.bgCard,
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    ...theme.shadow.card,
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadow.sm,
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   title: {
-    fontSize: 15,
-    fontFamily: theme.font.body,
-    fontWeight: '700',
+    fontSize: 16,
+    fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.sm,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  legendText: {
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
   },
   chartWrapper: {
     alignItems: 'center',
-    marginTop: theme.spacing.sm,
-  },
-  barLabel: {
-    fontSize: 9,
-    fontFamily: theme.font.body,
-    color: theme.colors.textMuted,
-    marginBottom: 2,
+    marginLeft: -10,
   },
   axisLabel: {
     fontSize: 10,
     fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
+    color: theme.colors.textMuted,
   },
   emptyContainer: {
     height: 200,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.md,
-    ...theme.shadow.card,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   emptyText: {
-    color: theme.colors.textSecondary,
+    color: theme.colors.textMuted,
     fontFamily: theme.font.body,
     fontSize: 14,
   },

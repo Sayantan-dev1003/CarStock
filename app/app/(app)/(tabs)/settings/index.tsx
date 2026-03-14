@@ -115,35 +115,38 @@ export default function SettingsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <AppHeader title="Settings" />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+      <AppHeader 
+        title="Settings" 
+        subtitle="Manage your account and preferences" 
+      />
 
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{getInitials(admin?.name || '')}</Text>
+            <Text style={styles.avatarText}>{getInitials(admin?.name || 'A')}</Text>
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>{admin?.name || 'Administrator'}</Text>
-            <Text style={styles.userEmail}>{admin?.email}</Text>
+            <Text style={styles.userRole}>Store Admin</Text>
           </View>
         </View>
 
         {/* Security Section */}
-        <Text style={styles.sectionHeader}>Security</Text>
+        <Text style={styles.sectionHeader}>Account & Security</Text>
         <View style={styles.settingsGroup}>
           {isBiometricSupported && renderSettingItem(
             'finger-print-outline',
             'Biometric Lock',
-            'Unlock app using Fingerprint/FaceID',
+            'Unlock using Face/Fingerprint',
             biometricsEnabled,
             toggleBiometrics
           )}
           {renderSettingItem(
             'lock-closed-outline',
-            'Change App PIN',
-            'Update your 4-digit security PIN',
+            'App Security PIN',
+            'Change your 4-digit PIN',
             null,
             null,
             () => router.push({
@@ -151,48 +154,52 @@ export default function SettingsScreen() {
                 params: { flow: 'reset' }
             })
           )}
-        </View>
-
-        {/* Notifications Section */}
-        <Text style={styles.sectionHeader}>Notifications</Text>
-        <View style={styles.settingsGroup}>
           {renderSettingItem(
-            'notifications-outline',
-            'Push Notifications',
-            'Receive alerts for low stock and new bills',
-            notificationsEnabled,
-            toggleNotifications
-          )}
-        </View>
-
-        {/* Support Section */}
-        <Text style={styles.sectionHeader}>Support</Text>
-        <View style={styles.settingsGroup}>
-          {renderSettingItem(
-            'help-circle-outline',
-            'Help Center',
-            'User guides and documentation',
-            null,
-            null,
-            () => Alert.alert('Help Center', 'Redirecting to support portal...')
-          )}
-          {renderSettingItem(
-            'information-circle-outline',
-            'About CarStock',
-            'Version 1.0.0 (Build 24)',
+            'mail-outline',
+            'Email Address',
+            admin?.email || 'admin@carstock.com',
             null,
             null,
             () => {}
           )}
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
-          <Ionicons name="log-out-outline" size={20} color={theme.colors.error} />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        {/* Preferences Section */}
+        <Text style={styles.sectionHeader}>Preferences</Text>
+        <View style={styles.settingsGroup}>
+          {renderSettingItem(
+            'notifications-outline',
+            'Push Notifications',
+            'Stock and billing alerts',
+            notificationsEnabled,
+            toggleNotifications
+          )}
+          {renderSettingItem(
+            'moon-outline',
+            'Appearance',
+            'Follow system theme',
+            null,
+            null,
+            () => {}
+          )}
+        </View>
 
-        <Text style={styles.versionText}>Powered by CarStock Engine</Text>
+        {/* Danger Zone Section */}
+        <Text style={styles.sectionHeader}>Danger Zone</Text>
+        <View style={styles.settingsGroup}>
+          <TouchableOpacity style={styles.logoutItem} onPress={handleLogout} activeOpacity={0.7}>
+            <View style={[styles.iconContainer, { backgroundColor: 'rgba(185, 28, 28, 0.05)' }]}>
+              <Ionicons name="log-out-outline" size={20} color="#B91C1C" />
+            </View>
+            <Text style={styles.logoutText}>Log Out Account</Text>
+            <Ionicons name="chevron-forward" size={20} color="#A8A29E" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.versionText}>CarStock Admin v1.0.0</Text>
+          <Text style={styles.copyrightText}>© 2026 CarStock Engine</Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -203,37 +210,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.bg,
   },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
-  pageTitle: {
-    fontSize: 26,
+  headerTitle: {
+    fontSize: 28,
     fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.lg,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginTop: 4,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   profileCard: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: theme.radius.md,
-    padding: theme.spacing.lg,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: 24,
     ...theme.shadow.card,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: theme.colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.md,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(180, 83, 9, 0.1)',
   },
   avatarText: {
-    fontSize: 24,
-    fontFamily: theme.font.heading,
+    fontSize: 20,
+    fontFamily: theme.font.bodyBold,
     color: theme.colors.primary,
   },
   profileInfo: {
@@ -241,85 +260,91 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 18,
-    fontFamily: theme.font.bodySemiBold,
+    fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
   },
-  userEmail: {
-    fontSize: 14,
+  userRole: {
+    fontSize: 13,
     fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
+    color: theme.colors.textMuted,
     marginTop: 2,
   },
   sectionHeader: {
     fontSize: 12,
-    fontFamily: theme.font.bodyBold,
+    fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: theme.spacing.sm,
+    letterSpacing: 0.5,
+    marginBottom: 12,
     marginLeft: 4,
   },
   settingsGroup: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: theme.radius.md,
-    marginBottom: theme.spacing.xl,
+    marginBottom: 24,
     overflow: 'hidden',
     ...theme.shadow.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.spacing.md,
+    padding: 14,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.bgMuted,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: theme.colors.bgMuted,
     justifyContent: 'center',
     alignItems: 'center',
   },
   settingText: {
     flex: 1,
-    marginLeft: theme.spacing.md,
+    marginLeft: 14,
   },
   settingTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: theme.font.bodyMedium,
     color: theme.colors.textPrimary,
   },
   settingSubtitle: {
     fontSize: 12,
     fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
+    color: theme.colors.textMuted,
     marginTop: 2,
   },
-  logoutBtn: {
+  logoutItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.bgCard,
-    paddingVertical: 16,
-    borderRadius: theme.radius.md,
-    marginTop: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(185, 28, 28, 0.1)',
+    padding: 14,
   },
   logoutText: {
-    fontSize: 16,
-    fontFamily: theme.font.bodyBold,
+    flex: 1,
+    fontSize: 15,
+    fontFamily: theme.font.bodyMedium,
     color: theme.colors.error,
-    marginLeft: 8,
+    marginLeft: 14,
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
   },
   versionText: {
-    textAlign: 'center',
     fontSize: 12,
     fontFamily: theme.font.body,
     color: theme.colors.textMuted,
-    marginTop: 40,
-    opacity: 0.8,
+  },
+  copyrightText: {
+    fontSize: 11,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginTop: 4,
+    opacity: 0.5,
   },
 });
 

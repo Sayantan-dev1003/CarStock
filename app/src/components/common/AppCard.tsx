@@ -35,12 +35,14 @@ export const AppCard: React.FC<AppCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.md,
+    borderRadius: 16,
     padding: theme.spacing.md,
     marginVertical: 4,
   },
   outlined: {
-    borderWidth: 1,
-    borderColor: theme.colors.bgMuted,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    elevation: 0,
+    shadowOpacity: 0,
   },
 });

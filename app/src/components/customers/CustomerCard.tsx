@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
@@ -56,31 +56,31 @@ const styles = StyleSheet.create({
   avatar: {
     width: 52,
     height: 52,
-    borderRadius: 16,
+    borderRadius: 26,
     backgroundColor: theme.colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: theme.spacing.md,
+    marginRight: 16,
   },
   avatarText: {
-    fontSize: 18,
-    fontFamily: theme.font.heading,
+    fontSize: 16,
+    fontFamily: theme.font.bodyBold,
     color: theme.colors.primary,
   },
   content: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textPrimary,
+    marginBottom: 2,
   },
   phone: {
     fontSize: 13,
     fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
-    marginTop: 2,
-    marginBottom: 6,
+    color: theme.colors.textMuted,
+    marginBottom: 8,
   },
   statsRow: {
     flexDirection: 'row',
@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 12,
     fontFamily: theme.font.bodyMedium,
-    color: theme.colors.textMuted,
+    color: theme.colors.textSecondary,
   },
   statsDivider: {
     fontSize: 12,
-    color: theme.colors.textMuted,
-    marginHorizontal: 4,
+    color: theme.colors.border,
+    marginHorizontal: 6,
   },
 });

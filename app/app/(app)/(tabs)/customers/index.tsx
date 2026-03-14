@@ -49,15 +49,17 @@ export default function CustomersScreen() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <AppHeader title="Customers" />
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+      <AppHeader 
+        title="Customers" 
+        subtitle="Manage your customer relationships"
+      />
       <View style={styles.searchSection}>
-        
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#A8A29E" style={styles.searchIcon} />
           <TextInput
             placeholder="Search customers..."
-            placeholderTextColor={theme.colors.textMuted}
+            placeholderTextColor="#A8A29E"
             value={search}
             onChangeText={setSearch}
             style={styles.searchInput}
@@ -104,7 +106,7 @@ export default function CustomersScreen() {
         )}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[theme.colors.primary]} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={['#B45309']} />
         }
         ListEmptyComponent={
           <EmptyState
@@ -124,20 +126,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.bg,
   },
   searchSection: {
-    backgroundColor: theme.colors.bg,
     paddingHorizontal: 20,
-    paddingTop: theme.spacing.sm,
+    paddingTop: 8,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.full,
     paddingHorizontal: 16,
-    height: 52,
-    marginBottom: theme.spacing.md,
-    ...theme.shadow.sm,
-    borderWidth: 1,
+    height: 48,
+    marginBottom: 16,
+    borderWidth: 1.5,
     borderColor: theme.colors.border,
   },
   searchIcon: {
@@ -150,38 +150,39 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   filterBar: {
-    marginBottom: theme.spacing.md,
+    marginBottom: 16,
   },
   filterContent: {
     paddingRight: 20,
+    gap: 8,
   },
   filterPill: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: theme.radius.sm,
-    marginRight: 8,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
   },
   activeFilterPill: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
+    borderColor: theme.colors.primary,
   },
   inactiveFilterPill: {
-    backgroundColor: theme.colors.bgCard,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bgMuted,
+    borderColor: 'transparent',
   },
   filterText: {
     fontSize: 13,
     fontFamily: theme.font.bodyMedium,
   },
   activeFilterText: {
-    color: theme.colors.bgCard,
+    color: theme.colors.primary,
   },
   inactiveFilterText: {
-    color: theme.colors.textSecondary,
+    color: theme.colors.textMuted,
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 100,
   },
 });
 

@@ -42,7 +42,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
   const getVariantStyle = (): ViewStyle => {
     switch (variant) {
       case 'secondary':
-        return { backgroundColor: theme.colors.textPrimary };
+        return { backgroundColor: theme.colors.primaryDeep };
       case 'outline':
         return {
           backgroundColor: 'transparent',
@@ -50,7 +50,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
           borderColor: theme.colors.primary,
         };
       case 'danger':
-        return { backgroundColor: '#FEE2E2' }; // soft red
+        return { backgroundColor: 'rgba(220, 38, 38, 0.1)' }; // soft red tint
       default:
         return { backgroundColor: theme.colors.primary };
     }

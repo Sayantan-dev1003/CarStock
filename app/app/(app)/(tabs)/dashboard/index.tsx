@@ -24,6 +24,8 @@ import { LoadingSpinner } from '../../../../src/components/common/LoadingSpinner
 import { formatCurrency, formatDate } from '../../../../src/utils/format';
 import { AppButton } from '../../../../src/components/common/AppButton';
 
+import { QuickActionGrid } from '../../../../src/components/dashboard/QuickActionGrid';
+
 export default function DashboardScreen() {
   const router = useRouter();
   const { isConnected } = useSocket();
@@ -74,101 +76,110 @@ export default function DashboardScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <AppHeader 
-        title={getGreeting() + " 👋"}
-        subtitle="Here's your shop overview"
+        title="Admin Portal" 
+        subtitle={formatDate(new Date())}
         rightAction={{
           icon: 'notifications-outline',
           onPress: () => router.push('/(app)/(tabs)/settings'),
         }}
       />
+      
       <ScrollView 
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isDashboardRefetching} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+          <RefreshControl 
+            refreshing={isDashboardRefetching} 
+            onRefresh={onRefresh} 
+            colors={[theme.colors.primary]} 
+            tintColor={theme.colors.primary}
+          />
         }
       >
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.greeting}>{getGreeting()},</Text>
+          <Text style={styles.subGreeting}>Here's what's happening with your stock today.</Text>
+        </View>
+
         {/* Metrics Grid */}
-        <View style={styles.metricsGrid}>
+        <View style={styles.metricsContainer}>
           <View style={styles.metricsRow}>
             <MetricCard
               title="Today's Revenue"
               value={formatCurrency(dashboardData?.todayRevenue || 0)}
-              icon="wallet-outline"
+              icon="wallet"
+              variant="primary"
               trend={{ value: 12, isPositive: true }}
             />
+          </View>
+          <View style={styles.metricsRow}>
             <MetricCard
               title="Today's Bills"
               value={dashboardData?.todayBills || 0}
               icon="receipt-outline"
             />
-          </View>
-          <View style={styles.metricsRow}>
             <MetricCard
               title="Total Stock"
               value={dashboardData?.totalStock || lowStockProducts?.length || 0}
               icon="cube-outline"
-              trend={lowStockProducts && lowStockProducts.length > 0 ? { value: lowStockProducts.length, isPositive: false } : undefined}
-            />
-            <MetricCard
-              title="Total Customers"
-              value={dashboardData?.totalCustomers || 0}
-              icon="people-outline"
             />
           </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <QuickActionGrid />
         </View>
 
         {/* Revenue Chart */}
-        <View style={styles.chartSection}>
+        <View style={styles.section}>
           <RevenueChart data={dashboardData?.weeklyRevenue || []} />
         </View>
 
-        {/* Recent Activity / Low Stock Section */}
+        {/* Low Stock Alert */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>LOW STOCK ALERT</Text>
+            <Text style={styles.sectionTitle}>Low Stock Alerts</Text>
             <TouchableOpacity onPress={() => router.push('/(app)/(tabs)/inventory')}>
-              <Text style={styles.viewAll}>View All</Text>
+              <Text style={styles.viewAllText}>View All</Text>
             </TouchableOpacity>
           </View>
           
-          {lowStockProducts && lowStockProducts.length > 0 ? (
-            lowStockProducts.slice(0, 3).map((product: any) => (
-              <AppCard 
-                key={product.id} 
-                style={styles.activityCard}
-                onPress={() => router.push(`/(app)/inventory/${product.id}`)}
-              >
-                <View style={styles.iconCircle}>
-                  <Ionicons name="alert-circle-outline" size={20} color={theme.colors.primary} />
-                </View>
-                <View style={styles.activityInfo}>
-                  <Text style={styles.activityTitle}>{product.name}</Text>
-                  <Text style={styles.activitySubtitle}>{product.category} • {product.quantity} in stock</Text>
-                </View>
-                <Text style={styles.timestamp}>Needs Reorder</Text>
-              </AppCard>
-            ))
-          ) : (
-            <View style={styles.emptyActivity}>
-              <Text style={styles.emptyText}>No low stock items</Text>
-            </View>
-          )}
+          <View style={styles.stockList}>
+            {lowStockProducts && lowStockProducts.length > 0 ? (
+              lowStockProducts.slice(0, 3).map((product: any) => (
+                <TouchableOpacity 
+                  key={product.id} 
+                  style={styles.stockItem}
+                  onPress={() => router.push(`/(app)/inventory/${product.id}`)}
+                >
+                  <View style={[styles.stockIconCircle, { backgroundColor: '#FEE2E2' }]}>
+                    <Ionicons name="alert-circle" size={20} color={theme.colors.error} />
+                  </View>
+                  <View style={styles.stockInfo}>
+                    <Text style={styles.stockName}>{product.name}</Text>
+                    <Text style={styles.stockCategory}>{product.category}</Text>
+                  </View>
+                  <View style={styles.stockBadge}>
+                    <Text style={styles.stockBadgeText}>{product.quantity} left</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="checkmark-circle-outline" size={40} color={theme.colors.success} />
+                <Text style={styles.emptyText}>Stock levels are looking good!</Text>
+              </View>
+            )}
+          </View>
         </View>
 
-        <View style={styles.bottomActions}>
-          <AppButton
-            title="Generate Weekly Report"
-            variant="outline"
-            leftIcon="document-text-outline"
-            onPress={() => reportsApi.generateReport('WEEKLY')}
-            fullWidth
-          />
-        </View>
-
-        <View style={{ height: 20 }} />
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -184,83 +195,112 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: theme.spacing.sm,
-    paddingBottom: theme.spacing.xl,
+    paddingTop: 12,
+    paddingBottom: 40,
   },
-  metricsGrid: {
+  welcomeSection: {
+    marginBottom: 24,
+  },
+  greeting: {
+    fontSize: 28,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+  },
+  subGreeting: {
+    fontSize: 15,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    marginTop: 4,
+  },
+  metricsContainer: {
     gap: 16,
-    marginBottom: theme.spacing.lg,
+    marginBottom: 32,
   },
   metricsRow: {
     flexDirection: 'row',
     gap: 16,
   },
-  chartSection: {
-    marginBottom: theme.spacing.lg,
-  },
   section: {
-    marginTop: theme.spacing.md,
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
+    marginBottom: 16,
   },
-  viewAll: {
+  viewAllText: {
     fontSize: 14,
     fontFamily: theme.font.bodyMedium,
     color: theme.colors.primary,
   },
-  activityCard: {
-    padding: theme.spacing.md,
+  stockList: {
+    gap: 12,
+  },
+  stockItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    backgroundColor: theme.colors.bgCard,
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: theme.colors.primaryLight,
+  stockIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  activityInfo: {
+  stockInfo: {
     flex: 1,
   },
-  activityTitle: {
-    fontSize: 16,
+  stockName: {
+    fontSize: 15,
     fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textPrimary,
   },
-  activitySubtitle: {
-    fontSize: 13,
+  stockCategory: {
+    fontSize: 12,
     fontFamily: theme.font.body,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
-  timestamp: {
+  stockBadge: {
+    backgroundColor: theme.colors.bgMuted,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  stockBadgeText: {
     fontSize: 12,
     fontFamily: theme.font.bodyMedium,
-    color: theme.colors.primary,
+    color: theme.colors.error,
   },
-  emptyActivity: {
-    padding: 20,
+  emptyState: {
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderStyle: 'dashed',
   },
   emptyText: {
-    color: theme.colors.textMuted,
-    fontStyle: 'italic',
-  },
-  bottomActions: {
-    marginTop: theme.spacing.xl,
+    marginTop: 12,
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
   },
 });
 

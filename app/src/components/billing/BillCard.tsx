@@ -32,6 +32,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
         <View style={styles.content}>
           <Text style={styles.customerName}>{bill.customer?.name || 'Walk-in Customer'}</Text>
           <Text style={styles.billId}>#{bill.billNumber}</Text>
+          <Text style={styles.date}>{dayjs(bill.createdAt).format('DD MMM YYYY, hh:mm A')}</Text>
         </View>
         <View style={styles.amountContainer}>
           <Text style={styles.amount}>{formatCurrency(bill.total)}</Text>
@@ -39,10 +40,6 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
             <Text style={[styles.statusText, { color: getStatusColor(status) }]}>{status}</Text>
           </View>
         </View>
-      </View>
-      <View style={styles.footer}>
-        <Text style={styles.date}>{dayjs(bill.createdAt).format('DD MMM YYYY, hh:mm A')}</Text>
-        <Text style={styles.paymentMode}>{bill.paymentMode}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -52,7 +49,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
+    padding: 16,
     marginBottom: 12,
     ...theme.shadow.card,
   },
@@ -60,19 +57,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
   },
   content: {
     flex: 1,
   },
   customerName: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   billId: {
     fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginBottom: 4,
+  },
+  date: {
+    fontSize: 11,
     fontFamily: theme.font.body,
     color: theme.colors.textMuted,
   },
@@ -83,37 +85,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: theme.font.heading,
     color: theme.colors.primary,
-    marginBottom: 4,
-    letterSpacing: -0.5,
+    marginBottom: 8,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: theme.radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.full,
   },
   statusText: {
     fontSize: 10,
-    fontFamily: theme.font.bodyMedium,
-    textTransform: 'uppercase',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.bgMuted,
-    marginTop: 4,
-  },
-  date: {
-    fontSize: 12,
-    fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
-  },
-  paymentMode: {
-    fontSize: 11,
     fontFamily: theme.font.bodySemiBold,
-    color: theme.colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

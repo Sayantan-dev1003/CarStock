@@ -81,11 +81,36 @@ export default function BillingScreen() {
     <View style={styles.historyContainer}>
       <AppHeader 
         title="Billing"
+        subtitle="Manage your invoices and payments"
         rightAction={{
-          icon: 'add',
+          icon: 'add-circle',
           onPress: () => setIsCreating(true),
         }}
       />
+
+      <View style={styles.summaryStrip}>
+        <View style={styles.summaryCard}>
+          <View style={[styles.dot, { backgroundColor: theme.colors.textPrimary }]} />
+          <View>
+            <Text style={styles.summaryValue}>{billsData?.data.length || 0}</Text>
+            <Text style={styles.summaryLabel}>Total Bills</Text>
+          </View>
+        </View>
+        <View style={styles.summaryCard}>
+          <View style={[styles.dot, { backgroundColor: theme.colors.success }]} />
+          <View>
+            <Text style={styles.summaryValue}>{billsData?.data.filter((b: any) => b.total > 0).length || 0}</Text>
+            <Text style={styles.summaryLabel}>Paid</Text>
+          </View>
+        </View>
+        <View style={styles.summaryCard}>
+          <View style={[styles.dot, { backgroundColor: theme.colors.warning }]} />
+          <View>
+            <Text style={styles.summaryValue}>0</Text>
+            <Text style={styles.summaryLabel}>Pending</Text>
+          </View>
+        </View>
+      </View>
 
       <View style={styles.filterBarContainer}>
         <ScrollView 
@@ -127,7 +152,7 @@ export default function BillingScreen() {
         )}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[theme.colors.primary]} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={['#B45309']} />
         }
         ListEmptyComponent={
           <EmptyState
@@ -185,7 +210,7 @@ export default function BillingScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       {isCreating ? renderCreationStep() : renderHistoryStep()}
 
       {/* Discount Modal */}
@@ -246,40 +271,73 @@ const styles = StyleSheet.create({
   historyContainer: {
     flex: 1,
   },
+  summaryStrip: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 12,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.sm,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 10,
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+  },
+  summaryLabel: {
+    fontSize: 10,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+  },
   filterBarContainer: {
-    marginBottom: theme.spacing.md,
-    marginTop: theme.spacing.xs,
+    marginBottom: 16,
   },
   filterContent: {
     paddingHorizontal: 20,
+    gap: 8,
   },
   filterPill: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: theme.radius.sm,
-    marginRight: 8,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
   },
   activeFilterPill: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
+    borderColor: theme.colors.primary,
   },
   inactiveFilterPill: {
-    backgroundColor: theme.colors.bgCard,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bgMuted,
+    borderColor: 'transparent',
   },
   filterText: {
     fontSize: 13,
     fontFamily: theme.font.bodyMedium,
   },
   activeFilterText: {
-    color: theme.colors.bgCard,
+    color: theme.colors.primary,
   },
   inactiveFilterText: {
-    color: theme.colors.textSecondary,
+    color: theme.colors.textMuted,
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 100,
   },
   creationContainer: {
     flex: 1,
@@ -287,26 +345,23 @@ const styles = StyleSheet.create({
   searchSection: {
     padding: 20,
     backgroundColor: theme.colors.bgCard,
-    zIndex: 10,
-    ...theme.shadow.sm,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
   createListContent: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(28, 25, 23, 0.4)', // Warm overlay
+    backgroundColor: 'rgba(69, 26, 3, 0.4)', // subtly tinted dark amber overlay
     justifyContent: 'center',
     padding: 20,
   },
   modalContent: {
     backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.lg,
+    borderRadius: theme.radius.md,
     padding: 24,
-    ...theme.shadow.lg,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -324,22 +379,22 @@ const styles = StyleSheet.create({
   },
   modalLabel: {
     fontSize: 12,
-    fontFamily: theme.font.bodyBold,
+    fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textMuted,
     textTransform: 'uppercase',
     marginBottom: 8,
     letterSpacing: 0.5,
   },
   discountInput: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.sm,
     padding: 16,
     fontSize: 24,
     fontFamily: theme.font.heading,
     color: theme.colors.primary,
     marginBottom: 24,
-    backgroundColor: theme.colors.bg,
+    backgroundColor: theme.colors.bgMuted,
     textAlign: 'center',
   },
   modalActions: {

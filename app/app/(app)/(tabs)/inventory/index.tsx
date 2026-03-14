@@ -64,19 +64,37 @@ export default function InventoryScreen() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <AppHeader title="Inventory" />
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+      <AppHeader 
+        title="Inventory" 
+        subtitle="Manage your products and stock"
+      />
+      
       <View style={styles.searchSection}>
-        
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#A8A29E" style={styles.searchIcon} />
           <TextInput
             placeholder="Search products..."
-            placeholderTextColor={theme.colors.textMuted}
+            placeholderTextColor="#A8A29E"
             value={search}
             onChangeText={setSearch}
             style={styles.searchInput}
           />
+        </View>
+
+        <View style={styles.statsStrip}>
+          <View style={styles.statChip}>
+            <Text style={styles.statValue}>{products?.length || 0}</Text>
+            <Text style={styles.statLabel}>Total</Text>
+          </View>
+          <View style={styles.statChip}>
+            <Text style={[styles.statValue, { color: '#B45309' }]}>{lowStockCount}</Text>
+            <Text style={styles.statLabel}>Low Stock</Text>
+          </View>
+          <View style={styles.statChip}>
+            <Text style={[styles.statValue, { color: '#B91C1C' }]}>{products?.filter((p: any) => p.quantity === 0).length || 0}</Text>
+            <Text style={styles.statLabel}>Out of Stock</Text>
+          </View>
         </View>
 
         <ScrollView 
@@ -108,15 +126,6 @@ export default function InventoryScreen() {
         </ScrollView>
       </View>
 
-      {lowStockCount > 0 && (
-        <View style={styles.lowStockBanner}>
-          <Ionicons name="warning-outline" size={18} color={theme.colors.primary} />
-          <Text style={styles.lowStockText}>
-            You have {lowStockCount} items with low stock level.
-          </Text>
-        </View>
-      )}
-
       <FlatList
         data={filteredProducts}
         keyExtractor={(item) => item.id}
@@ -128,10 +137,10 @@ export default function InventoryScreen() {
         )}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 80 }
+          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 90 }
         ]}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[theme.colors.primary]} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={['#B45309']} />
         }
         ListEmptyComponent={
           <EmptyState
@@ -161,21 +170,17 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.bg,
   },
   searchSection: {
-    backgroundColor: theme.colors.bg,
     paddingHorizontal: 20,
-    paddingTop: theme.spacing.sm,
+    paddingTop: 8,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.bgMuted,
+    borderRadius: theme.radius.full,
     paddingHorizontal: 16,
-    height: 52,
-    marginBottom: theme.spacing.md,
-    ...theme.shadow.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    height: 48,
+    marginBottom: 16,
   },
   searchIcon: {
     marginRight: 10,
@@ -186,52 +191,61 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.body,
     color: theme.colors.textPrimary,
   },
+  statsStrip: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  statChip: {
+    flex: 1,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: theme.radius.sm,
+    padding: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  statValue: {
+    fontSize: 16,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginTop: 2,
+  },
   filterBar: {
-    marginBottom: theme.spacing.md,
+    marginBottom: 16,
   },
   filterContent: {
     paddingRight: 20,
+    gap: 8,
   },
   filterPill: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: theme.radius.sm,
-    marginRight: 8,
+    borderRadius: theme.radius.full,
+    borderWidth: 1.5,
   },
   activeFilterPill: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
+    borderColor: theme.colors.primary,
   },
   inactiveFilterPill: {
-    backgroundColor: theme.colors.bgCard,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bgMuted,
+    borderColor: 'transparent',
   },
   filterText: {
     fontSize: 13,
     fontFamily: theme.font.bodyMedium,
   },
   activeFilterText: {
-    color: theme.colors.bgCard,
+    color: theme.colors.primary,
   },
   inactiveFilterText: {
-    color: theme.colors.textSecondary,
-  },
-  lowStockBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.primaryLight,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginBottom: 10,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(180, 83, 9, 0.1)',
-  },
-  lowStockText: {
-    fontSize: 13,
-    fontFamily: theme.font.bodyMedium,
-    color: theme.colors.primary,
-    marginLeft: 8,
+    color: theme.colors.textMuted,
   },
   listContent: {
     paddingHorizontal: 20,
@@ -239,14 +253,13 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     ...theme.shadow.lg,
-    elevation: 8,
   },
 });
 

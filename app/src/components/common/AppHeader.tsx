@@ -41,8 +41,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.leftSection}>
+    <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
+      <View style={styles.headerRow}>
         {showBackButton && (
           <TouchableOpacity 
             style={styles.backButton} 
@@ -51,69 +51,71 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <Ionicons name="chevron-back" size={24} color={theme.colors.textPrimary} />
           </TouchableOpacity>
         )}
-        <View>
+        <View style={[styles.titleContainer, !showBackButton && { marginLeft: 0 }]}>
           <Text style={styles.title}>{title}</Text>
           {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
-      </View>
 
-      {rightAction && (
-        <TouchableOpacity 
-          style={styles.rightButton} 
-          onPress={rightAction.onPress}
-        >
-          <Ionicons name={rightAction.icon} size={24} color={theme.colors.textPrimary} />
-        </TouchableOpacity>
-      )}
+        {rightAction && (
+          <TouchableOpacity 
+            style={styles.rightButton} 
+            onPress={rightAction.onPress}
+          >
+            <Ionicons name={rightAction.icon} size={24} color={theme.colors.textPrimary} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingBottom: 15,
+    paddingBottom: 12,
     backgroundColor: theme.colors.bg,
-    zIndex: 10,
   },
-  leftSection: {
+  headerRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    flex: 1,
+    height: 56,
   },
   backButton: {
-    marginRight: 16,
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 22,
     backgroundColor: theme.colors.bgCard,
     justifyContent: 'center',
     alignItems: 'center',
     ...theme.shadow.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  titleContainer: {
+    flex: 1,
+    marginHorizontal: 12,
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
-    fontFamily: theme.font.bodyMedium,
+    fontFamily: theme.font.body,
     color: theme.colors.textSecondary,
-    marginTop: 0,
-    opacity: 0.8,
+    marginTop: -2,
   },
   rightButton: {
     width: 44,
     height: 44,
-    borderRadius: 14,
-    backgroundColor: theme.colors.bgCard,
+    borderRadius: 22,
+    backgroundColor: theme.colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    ...theme.shadow.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(217, 119, 6, 0.1)',
   },
 });

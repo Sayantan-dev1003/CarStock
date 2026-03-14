@@ -1,14 +1,15 @@
 export const theme = {
   colors: {
     // Backgrounds
-    bg: '#FAF9F6',           // lighter warm off-white, primary background
+    bg: '#FDFCFB',           // warmer off-white, primary background
     bgCard: '#FFFFFF',        // pure white for cards
-    bgMuted: '#F1EFEA',       // subtle section dividers / input fills
+    bgMuted: '#F5F2F0',       // subtle section dividers / input fills
 
     // Primary accent — sophisticated deep amber
-    primary: '#B45309',       // amber-700, more sophisticated main color
-    primaryLight: '#FFFBEB',  // amber-50, soft tinted backgrounds
-    primaryDark: '#92400E',   // amber-800, pressed state
+    primary: '#D97706',       // vibrant amber-600
+    primaryLight: '#FEF3C7',  // amber-100, soft tinted backgrounds
+    primaryDark: '#B45309',   // amber-700
+    primaryDeep: '#451A03',   // deep dark amber for high contrast text/accents
 
     // Text
     textPrimary: '#1C1917',   // stone-900, near-black, headings
@@ -16,13 +17,13 @@ export const theme = {
     textMuted: '#A8A29E',     // stone-400, placeholders
 
     // Status
-    success: '#15803D',       // green-700
-    error: '#B91C1C',         // red-700
-    warning: '#B45309',       // amber-700
+    success: '#059669',       // emerald-600
+    error: '#DC2626',         // red-600
+    warning: '#D97706',       // amber-600
 
     // UI
     border: '#E7E5E4',        // stone-200
-    shadow: 'rgba(28, 25, 23, 0.05)',
+    shadow: 'rgba(69, 26, 3, 0.08)', // subtly tinted shadow
   },
 
   font: {

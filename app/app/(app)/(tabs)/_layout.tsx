@@ -1,33 +1,44 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFonts } from 'expo-font';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
 
-  const [fontsLoaded] = useFonts({
-    ...MaterialCommunityIcons.font,
-  });
-
-  if (!fontsLoaded) return null;
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.grey400,
-        tabBarStyle: {
-          backgroundColor: Colors.white,
-          height: 50 + insets.bottom,
-          paddingBottom: insets.bottom,
-          borderTopColor: Colors.grey200,
-        },
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
+          fontSize: 10,
+          fontFamily: theme.font.bodyMedium,
+          marginTop: 2,
+          marginBottom: 0,
+          letterSpacing: 0.2,
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
+        },
+        tabBarItemStyle: {
+          flex: 1,
+          paddingVertical: 0,
+        },
+        tabBarStyle: {
+          height: 64 + (insets.bottom > 0 ? insets.bottom - 10 : 0),
+          paddingTop: 0,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+          backgroundColor: theme.colors.bgCard,
+          borderTopWidth: 1,
+          borderTopColor: theme.colors.border,
+          elevation: 8,
+          shadowColor: '#1A1816',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
         },
         tabBarHideOnKeyboard: true,
         headerShown: false,
@@ -37,10 +48,10 @@ export default function TabsLayout() {
         name="dashboard/index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="view-dashboard"
-              size={size}
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'grid' : 'grid-outline'}
+              size={24}
               color={color}
             />
           ),
@@ -49,11 +60,11 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="billing/index"
         options={{
-          title: 'New Bill',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="receipt"
-              size={size}
+          title: 'Billing',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'receipt' : 'receipt-outline'}
+              size={24}
               color={color}
             />
           ),
@@ -63,10 +74,10 @@ export default function TabsLayout() {
         name="inventory/index"
         options={{
           title: 'Inventory',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="package-variant-closed"
-              size={size}
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'cube' : 'cube-outline'}
+              size={24}
               color={color}
             />
           ),
@@ -76,10 +87,10 @@ export default function TabsLayout() {
         name="customers/index"
         options={{
           title: 'Customers',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="account-group"
-              size={size}
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'people' : 'people-outline'}
+              size={24}
               color={color}
             />
           ),
@@ -89,10 +100,10 @@ export default function TabsLayout() {
         name="settings/index"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="cog"
-              size={size}
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'settings' : 'settings-outline'}
+              size={24}
               color={color}
             />
           ),
