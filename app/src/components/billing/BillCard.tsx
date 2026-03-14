@@ -20,8 +20,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
     }
   };
 
-  // Mocking status for visual consistency in the demo, but using real status in logic
-  const status = bill.total > 0 ? 'PAID' : 'PENDING'; 
+  const status = bill.status || 'PAID'; 
 
   return (
     <TouchableOpacity 

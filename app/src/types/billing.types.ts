@@ -1,4 +1,5 @@
 export type PaymentMode = 'CASH' | 'UPI' | 'CARD';
+export type BillStatus = 'PAID' | 'PENDING';
 
 export interface BillItem {
   productId: string;
@@ -33,6 +34,7 @@ export interface Bill {
   sgst: number;
   total: number;
   paymentMode: PaymentMode;
+  status: BillStatus;
   pdfUrl?: string;
   emailSent: boolean;
   whatsappSent: boolean;
@@ -47,6 +49,7 @@ export interface CreateBillPayload {
     unitPrice: number;
   }>;
   paymentMode: PaymentMode;
+  status?: BillStatus;
   discount: number;
   vehicleId?: string;
 }

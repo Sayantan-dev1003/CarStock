@@ -29,7 +29,7 @@ import { BillCard } from '../../../../src/components/billing/BillCard';
 import { AppHeader } from '../../../../src/components/common/AppHeader';
 import { formatDate } from '../../../../src/utils/format';
 
-const FILTERS = ['All', 'Paid', 'Pending', 'Overdue'];
+const FILTERS = ['All', 'Paid', 'Pending'];
 
 export default function BillingScreen() {
   const router = useRouter();
@@ -56,7 +56,13 @@ export default function BillingScreen() {
     isRefetching 
   } = useQuery({
     queryKey: ['bills', selectedFilter],
-    queryFn: () => billingApi.getBills(1, 20),
+    queryFn: () => billingApi.getBills(
+      1, 
+      50, 
+      undefined, 
+      undefined, 
+      selectedFilter === 'All' ? undefined : selectedFilter.toUpperCase()
+    ),
   });
 
   const handleProductSelect = (product: ProductSearchResult) => {
@@ -105,7 +111,7 @@ export default function BillingScreen() {
           </View>
           <View>
             <Text style={styles.statsValue}>
-              {billsData?.data?.filter((b: any) => b.total > 0)?.length || 0}
+              {billsData?.data?.filter((b: any) => b.status === 'PAID')?.length || 0}
             </Text>
             <Text style={styles.statsLabel}>Paid Bills</Text>
           </View>
@@ -217,7 +223,7 @@ export default function BillingScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <View style={styles.container}>
       {isCreating ? renderCreationStep() : renderHistoryStep()}
 
       {/* Discount Modal unchanged */}
@@ -266,12 +272,12 @@ export default function BillingScreen() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: theme.colors.bg,
   },
@@ -358,8 +364,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.bg,
   },
   createListContent: {
-    padding: 20,
-    paddingBottom: 120,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   modalOverlay: {
     flex: 1,

@@ -12,10 +12,11 @@ export const billingApi = {
     page: number,
     limit: number,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    status?: string
   ): Promise<PaginatedResponse<Bill>> => {
     const response = await client.get('/bills', {
-      params: { page, limit, startDate, endDate },
+      params: { page, limit, startDate, endDate, status },
     });
     return response.data ?? { data: [], total: 0, page: 1, limit: 10 };
   },

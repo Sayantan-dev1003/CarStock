@@ -6,10 +6,11 @@ import {
   TouchableOpacity, 
   Linking, 
   ScrollView,
-  SafeAreaView
+  Platform
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -18,7 +19,7 @@ import Animated, {
   withSequence,
   withTiming
 } from 'react-native-reanimated';
-import { theme, Colors } from '../../../src/constants/theme';
+import { theme } from '../../../src/constants/theme';
 import { AppHeader } from '../../../src/components/common/AppHeader';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { useBillingStore } from '../../../src/store/billing.store';
@@ -84,29 +85,32 @@ export default function BillSuccessScreen() {
   if (!billData) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+    <View style={styles.container}>
+      <AppHeader title="Success" showBackButton={false} />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.topSection}>
           <Animated.View style={[styles.checkCircle, animatedCheckStyle]}>
-            <MaterialCommunityIcons name="check" size={60} color={Colors.white} />
+            <Ionicons name="checkmark" size={48} color={theme.colors.bgCard} />
           </Animated.View>
           <Text style={styles.successTitle}>Payment Confirmed!</Text>
           <Text style={styles.billId}>{formatBillNumber(billData.billNumber)}</Text>
         </View>
 
         <Animated.View style={[styles.card, animatedContentStyle]}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Customer</Text>
-            <Text style={styles.summaryValue}>{billData.customer?.name || 'Walk-in Customer'}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Amount Paid</Text>
-            <Text style={styles.amountValue}>{formatCurrency(billData.total)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Mode</Text>
-            <View style={styles.modeBadge}>
-              <Text style={styles.modeText}>{billData.paymentMode}</Text>
+          <View style={styles.cardHeader}>
+            <View style={[styles.avatar, { backgroundColor: theme.colors.primaryLight }]}>
+              <Text style={styles.avatarText}>{(billData.customer?.name || 'C').charAt(0).toUpperCase()}</Text>
+            </View>
+            <View>
+              <Text style={styles.customerName}>{billData.customer?.name || 'Walk-in Customer'}</Text>
+              <Text style={styles.paymentModeText}>{billData.paymentMode} Payment</Text>
+            </View>
+            <View style={styles.amountContainer}>
+              <Text style={styles.amountValue}>{formatCurrency(billData.total)}</Text>
             </View>
           </View>
 
@@ -114,63 +118,85 @@ export default function BillSuccessScreen() {
 
           <Text style={styles.sectionTitle}>Receipt Delivery</Text>
           
-          <View style={styles.deliveryRow}>
-            <View style={styles.deliveryInfo}>
-              <MaterialCommunityIcons name="email-check-outline" size={20} color={Colors.grey500} />
-              <Text style={styles.deliveryLabel}>Email Receipt</Text>
+          <View style={styles.deliveryList}>
+            <View style={styles.deliveryItem}>
+              <View style={styles.deliveryMain}>
+                <View style={styles.deliveryIconCircle}>
+                  <Ionicons name="mail-outline" size={20} color={theme.colors.textSecondary} />
+                </View>
+                <Text style={styles.deliveryLabel}>Email Receipt</Text>
+              </View>
+              {billData.emailSent ? (
+                 <View style={styles.statusBadgeSuccess}>
+                    <Ionicons name="checkmark-circle" size={14} color={theme.colors.success} />
+                    <Text style={styles.statusTextSuccess}>Sent</Text>
+                 </View>
+              ) : (
+                <TouchableOpacity 
+                  onPress={() => handleRetry('email')} 
+                  disabled={!!retrying}
+                  style={styles.retryAction}
+                >
+                  <Text style={styles.retryBtn}>{retrying === 'email' ? 'Sending...' : 'Retry'}</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            {billData.emailSent ? (
-               <View style={styles.statusBadgeSuccess}>
-                  <Text style={styles.statusTextSuccess}>Sent</Text>
-               </View>
-            ) : (
-              <TouchableOpacity onPress={() => handleRetry('email')} disabled={!!retrying}>
-                <Text style={styles.retryBtn}>{retrying === 'email' ? 'Sending...' : 'Retry'}</Text>
-              </TouchableOpacity>
-            )}
+
+            <View style={styles.deliveryItem}>
+              <View style={styles.deliveryMain}>
+                <View style={styles.deliveryIconCircle}>
+                  <Ionicons name="logo-whatsapp" size={20} color={theme.colors.textSecondary} />
+                </View>
+                <Text style={styles.deliveryLabel}>WhatsApp Receipt</Text>
+              </View>
+              {billData.whatsappSent ? (
+                 <View style={styles.statusBadgeSuccess}>
+                    <Ionicons name="checkmark-circle" size={14} color={theme.colors.success} />
+                    <Text style={styles.statusTextSuccess}>Sent</Text>
+                 </View>
+              ) : (
+                <TouchableOpacity 
+                  onPress={() => handleRetry('whatsapp')} 
+                  disabled={!!retrying}
+                  style={styles.retryAction}
+                >
+                  <Text style={styles.retryBtn}>{retrying === 'whatsapp' ? 'Sending...' : 'Retry'}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
-          <View style={styles.deliveryRow}>
-            <View style={styles.deliveryInfo}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color={Colors.grey500} />
-              <Text style={styles.deliveryLabel}>WhatsApp Receipt</Text>
+          <TouchableOpacity style={styles.pdfButton} onPress={handleViewPdf} activeOpacity={0.7}>
+            <View style={styles.pdfIconCircle}>
+              <Ionicons name="document-text" size={24} color={theme.colors.primary} />
             </View>
-            {billData.whatsappSent ? (
-               <View style={styles.statusBadgeSuccess}>
-                  <Text style={styles.statusTextSuccess}>Sent</Text>
-               </View>
-            ) : (
-              <TouchableOpacity onPress={() => handleRetry('whatsapp')} disabled={!!retrying}>
-                <Text style={styles.retryBtn}>{retrying === 'whatsapp' ? 'Sending...' : 'Retry'}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <TouchableOpacity style={styles.pdfButton} onPress={handleViewPdf}>
-            <MaterialCommunityIcons name="file-pdf-box" size={24} color={Colors.primary} />
-            <Text style={styles.pdfButtonText}>View Bill PDF</Text>
-            <MaterialCommunityIcons name="open-in-new" size={16} color={Colors.primary} />
+            <View style={styles.pdfInfo}>
+              <Text style={styles.pdfButtonText}>View Digital Invoice</Text>
+              <Text style={styles.pdfSubtitle}>PDF • {formatBillNumber(billData.billNumber)}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
           </TouchableOpacity>
         </Animated.View>
 
         <View style={styles.bottomActions}>
-          <View style={styles.btnRow}>
-            <AppButton
-              title="New Bill"
-              onPress={() => router.replace('/(app)/(tabs)/billing')}
-              style={styles.flexBtn}
-              leftIcon="add"
-            />
-          </View>
+          <AppButton
+            title="Create New Bill"
+            onPress={() => router.replace('/(app)/(tabs)/billing')}
+            size="lg"
+            style={styles.actionBtn}
+            leftIcon="add-circle-outline"
+          />
           <AppButton
             title="Back to Dashboard"
             onPress={() => router.replace('/(app)/(tabs)/dashboard')}
             variant="outline"
-            style={styles.dashboardBtn}
+            size="lg"
+            style={[styles.actionBtn, { marginTop: 12 }]}
+            leftIcon="grid-outline"
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -184,111 +210,144 @@ const styles = StyleSheet.create({
   },
   topSection: {
     backgroundColor: theme.colors.textPrimary,
-    height: 300,
+    height: 320,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 40,
+    paddingTop: 40,
   },
   checkCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
+    width: 88,
+    height: 88,
+    borderRadius: 30,
     backgroundColor: theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: 24,
     ...theme.shadow.lg,
   },
   successTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontFamily: theme.font.heading,
     color: theme.colors.bgCard,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   billId: {
     fontSize: 14,
     fontFamily: theme.font.bodyMedium,
-    color: theme.colors.textMuted,
-    letterSpacing: 1,
+    color: 'rgba(255, 255, 255, 0.5)',
+    letterSpacing: 1.5,
   },
   card: {
     backgroundColor: theme.colors.bgCard,
     marginHorizontal: 20,
-    marginTop: -60,
-    borderRadius: theme.radius.lg,
+    marginTop: -50,
+    borderRadius: 32,
     padding: 24,
     ...theme.shadow.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  summaryRow: {
+  cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    gap: 16,
+    marginBottom: 8,
   },
-  summaryLabel: {
-    fontSize: 14,
-    fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  summaryValue: {
-    fontSize: 16,
-    fontFamily: theme.font.bodySemiBold,
+  avatarText: {
+    fontSize: 18,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.primary,
+  },
+  customerName: {
+    fontSize: 17,
+    fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
   },
+  paymentModeText: {
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  amountContainer: {
+    marginLeft: 'auto',
+  },
   amountValue: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: theme.font.heading,
     color: theme.colors.primary,
   },
-  modeBadge: {
-    backgroundColor: theme.colors.bgMuted,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: theme.radius.sm,
-  },
-  modeText: {
-    fontSize: 10,
-    fontFamily: theme.font.bodyBold,
-    color: theme.colors.textSecondary,
-    textTransform: 'uppercase',
-  },
   divider: {
     height: 1,
-    backgroundColor: theme.colors.bgMuted,
+    backgroundColor: theme.colors.border,
     marginVertical: 24,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: theme.font.bodyBold,
     color: theme.colors.textPrimary,
     marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  deliveryRow: {
+  deliveryList: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  deliveryItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    backgroundColor: theme.colors.bg,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  deliveryInfo: {
+  deliveryMain: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  deliveryIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: theme.colors.bgCard,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   deliveryLabel: {
     fontSize: 14,
     fontFamily: theme.font.bodyMedium,
-    color: theme.colors.textSecondary,
-    marginLeft: 12,
+    color: theme.colors.textPrimary,
   },
   statusBadgeSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: theme.colors.success + '15',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: theme.radius.sm,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   statusTextSuccess: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: theme.font.bodyBold,
     color: theme.colors.success,
+  },
+  retryAction: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   retryBtn: {
     fontSize: 13,
@@ -298,32 +357,42 @@ const styles = StyleSheet.create({
   pdfButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.bgMuted,
+    backgroundColor: theme.colors.primary + '08',
     padding: 16,
-    borderRadius: theme.radius.md,
+    borderRadius: 20,
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary + '20',
+    gap: 16,
+  },
+  pdfIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: theme.colors.bgCard,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadow.sm,
+  },
+  pdfInfo: {
+    flex: 1,
   },
   pdfButtonText: {
-    flex: 1,
-    marginLeft: 12,
     fontSize: 15,
-    fontFamily: theme.font.bodySemiBold,
+    fontFamily: theme.font.bodyBold,
     color: theme.colors.textPrimary,
+  },
+  pdfSubtitle: {
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
   },
   bottomActions: {
     padding: 24,
-    paddingTop: 40,
+    paddingTop: 32,
   },
-  btnRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  flexBtn: {
-    flex: 1,
-  },
-  dashboardBtn: {
-    marginTop: 8,
+  actionBtn: {
+    width: '100%',
   },
 });

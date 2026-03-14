@@ -37,8 +37,9 @@ export class BillingController {
     @Query('limit') limit: string = '20',
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('status') status?: string,
   ) {
-    return this.billingService.getBills(Number(page), Number(limit), startDate, endDate);
+    return this.billingService.getBills(Number(page), Number(limit), startDate, endDate, status);
   }
 
   @Get('customer/:customerId')

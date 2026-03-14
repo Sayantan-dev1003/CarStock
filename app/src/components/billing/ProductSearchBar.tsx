@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { AppInput } from '../common/AppInput';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../constants/theme';
+import { theme } from '../../constants/theme';
 import { productsApi } from '../../api/products.api';
 import { useDebounce } from '../../hooks/useDebounce';
 import { ProductSearchResult } from '../../types/product.types';
@@ -21,7 +21,7 @@ export const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ onProductSel
   const { data: results, isLoading } = useQuery({
     queryKey: ['product-search', debouncedQuery],
     queryFn: () => productsApi.searchProducts(debouncedQuery),
-    enabled: debouncedQuery.length >= 2,
+    enabled: debouncedQuery.length >= 1,
   });
 
   const handleSelect = (product: ProductSearchResult) => {
@@ -36,17 +36,22 @@ export const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ onProductSel
         placeholder="Search products to add..."
         value={query}
         onChangeText={setQuery}
-        leftIcon="magnify"
+        leftIcon="search-outline"
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setTimeout(() => setIsFocused(false), 200)}
         containerStyle={styles.inputContainer}
       />
 
-      {isFocused && query.length >= 2 && (
+      {isFocused && query.length >= 1 && (
         <View style={styles.dropdown}>
+          <View style={styles.dropdownHeader}>
+            <Text style={styles.dropdownTitle}>Quick Search Results</Text>
+            <TouchableOpacity onPress={() => setIsFocused(false)}>
+              <Ionicons name="close-circle" size={20} color={theme.colors.textMuted} />
+            </TouchableOpacity>
+          </View>
           {isLoading ? (
             <View style={styles.centerItem}>
-              <ActivityIndicator color={Colors.primary} />
+              <ActivityIndicator color={theme.colors.primary} />
             </View>
           ) : results && results.length > 0 ? (
             <FlatList
@@ -57,9 +62,12 @@ export const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ onProductSel
                   style={styles.resultItem}
                   onPress={() => handleSelect(item)}
                 >
+                  <View style={styles.resultIcon}>
+                    <MaterialCommunityIcons name="package-variant-closed" size={20} color={theme.colors.primary} />
+                  </View>
                   <View style={styles.resultInfo}>
                     <Text style={styles.resultName}>{item.name}</Text>
-                    <Text style={styles.resultStock}>In Stock: {item.quantity}</Text>
+                    <Text style={styles.resultStock}>Stock: {item.quantity} available</Text>
                   </View>
                   <Text style={styles.resultPrice}>{formatCurrency(item.sellingPrice)}</Text>
                 </TouchableOpacity>
@@ -88,52 +96,79 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     position: 'absolute',
-    top: 55,
+    top: 60,
     left: 0,
     right: 0,
-    backgroundColor: Colors.white,
-    borderRadius: BorderRadius.md,
-    maxHeight: 300,
-    ...Shadows.lg,
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: 24,
+    maxHeight: 350,
+    ...theme.shadow.lg,
     borderWidth: 1,
-    borderColor: Colors.grey200,
+    borderColor: theme.colors.border,
+    overflow: 'hidden',
   },
-  list: {
-    padding: Spacing.xs,
-  },
-  resultItem: {
+  dropdownHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.grey100,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  dropdownTitle: {
+    fontSize: 12,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  list: {
+    padding: 8,
+  },
+  resultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 4,
+  },
+  resultIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: theme.colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   resultInfo: {
     flex: 1,
+    marginLeft: 12,
   },
   resultName: {
-    fontSize: Typography.fontSizes.base,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.dark,
+    fontSize: 15,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textPrimary,
   },
   resultStock: {
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.grey500,
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   resultPrice: {
-    fontSize: Typography.fontSizes.md,
-    fontWeight: Typography.fontWeights.bold,
-    color: Colors.primary,
+    fontSize: 16,
+    fontFamily: theme.font.heading,
+    color: theme.colors.primary,
   },
   centerItem: {
-    padding: Spacing.xl,
+    padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   noResults: {
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.grey500,
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    textAlign: 'center',
   },
 });

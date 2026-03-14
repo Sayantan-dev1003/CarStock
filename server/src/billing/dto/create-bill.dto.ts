@@ -19,6 +19,12 @@ export class CreateBillDto {
   @IsIn(['CASH', 'UPI', 'CARD'])
   paymentMode: string;
 
+  @ApiPropertyOptional({ example: 'PAID', description: 'Bill status', enum: ['PAID', 'PENDING'], default: 'PAID' })
+  @IsOptional()
+  @IsString()
+  @IsIn(['PAID', 'PENDING'])
+  status?: string;
+
   @ApiPropertyOptional({ example: 100, description: 'Discount applied to the bill', default: 0 })
   @IsOptional()
   @IsNumber()

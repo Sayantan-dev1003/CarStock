@@ -27,21 +27,28 @@ export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.detailsRow}>
-          <TouchableOpacity style={styles.detailItem} onPress={onDiscountPress}>
+        <View style={styles.container}>
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.label}>Subtotal</Text>
+            <Text style={styles.value}>{formatCurrency(subtotal)}</Text>
+          </View>
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.label}>GST (18%)</Text>
+            <Text style={styles.value}>{formatCurrency(gst)}</Text>
+          </View>
+
+          <TouchableOpacity style={styles.summaryRow} onPress={onDiscountPress}>
             <Text style={styles.label}>Discount</Text>
             <Text style={[styles.value, discount > 0 && styles.discountValue]}>
               - {formatCurrency(discount)}
             </Text>
           </TouchableOpacity>
           
-          <View style={styles.detailItem}>
-            <Text style={styles.label}>GST (18%)</Text>
-            <Text style={styles.value}>{formatCurrency(gst)}</Text>
-          </View>
-          
-          <View style={styles.totalItem}>
+          <View style={styles.divider} />
+
+          <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Grand Total</Text>
             <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
           </View>
@@ -67,28 +74,38 @@ const styles = StyleSheet.create({
     ...theme.shadow.lg,
   },
   container: {
-    padding: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
+    padding: 20,
+    backgroundColor: theme.colors.bg,
   },
-  detailsRow: {
+  summaryCard: {
+    backgroundColor: theme.colors.bgCard,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadow.sm,
+  },
+  summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.lg,
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  detailItem: {
-    flex: 1,
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.bgMuted,
+    marginVertical: 12,
   },
-  totalItem: {
-    flex: 1.5,
-    alignItems: 'flex-end',
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   label: {
-    fontSize: 10,
-    fontFamily: theme.font.bodyBold,
-    color: theme.colors.textMuted,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-    letterSpacing: 0.5,
+    fontSize: 13,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
   },
   value: {
     fontSize: 14,
@@ -99,15 +116,14 @@ const styles = StyleSheet.create({
     color: theme.colors.success,
   },
   totalLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontFamily: theme.font.bodyBold,
-    color: theme.colors.textMuted,
+    color: theme.colors.textPrimary,
     textTransform: 'uppercase',
-    marginBottom: 2,
     letterSpacing: 0.5,
   },
   totalValue: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: theme.font.heading,
     color: theme.colors.primary,
     letterSpacing: -0.5,

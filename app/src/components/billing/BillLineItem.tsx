@@ -18,19 +18,18 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.topRow}>
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
-          <Text style={styles.unitPrice}>
-            {formatCurrency(item.unitPrice)} per unit
-          </Text>
-        </View>
-        <Text style={styles.lineTotal}>
-          {formatCurrency(item.unitPrice * item.quantity)}
+      <View style={styles.leftContent}>
+        <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.unitPrice}>
+          {formatCurrency(item.unitPrice)} per unit
         </Text>
       </View>
       
-      <View style={styles.bottomRow}>
+      <View style={styles.rightContent}>
+        <Text style={styles.lineTotal}>
+          {formatCurrency(item.unitPrice * item.quantity)}
+        </Text>
+        
         <View style={styles.quantityContainer}>
           <TouchableOpacity 
             style={styles.qtyBtn} 
@@ -38,7 +37,7 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
           >
             <MaterialCommunityIcons 
               name={item.quantity > 1 ? "minus" : "trash-can-outline"} 
-              size={18} 
+              size={16} 
               color={item.quantity > 1 ? theme.colors.textSecondary : theme.colors.error} 
             />
           </TouchableOpacity>
@@ -51,13 +50,9 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
             style={styles.qtyBtn}
             onPress={() => onQuantityChange(item.productId, item.quantity + 1)}
           >
-            <MaterialCommunityIcons name="plus" size={18} color={theme.colors.primary} />
+            <MaterialCommunityIcons name="plus" size={16} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity onPress={() => onRemove(item.productId)} style={styles.removeBtn}>
-          <Text style={styles.removeText}>Remove Item</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -66,74 +61,60 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.bgCard,
-    padding: theme.spacing.md,
+    padding: 16,
     borderRadius: theme.radius.md,
-    marginBottom: theme.spacing.sm,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     ...theme.shadow.sm,
   },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.md,
-  },
-  info: {
+  leftContent: {
     flex: 1,
-    marginRight: theme.spacing.md,
+    marginRight: 12,
   },
   name: {
     fontSize: 16,
-    fontFamily: theme.font.bodySemiBold,
+    fontFamily: theme.font.bodyBold,
     color: theme.colors.textPrimary,
   },
   unitPrice: {
     fontSize: 12,
     fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
+    color: theme.colors.textMuted,
     marginTop: 2,
+  },
+  rightContent: {
+    alignItems: 'flex-end',
   },
   lineTotal: {
     fontSize: 18,
     fontFamily: theme.font.heading,
     color: theme.colors.primary,
-    letterSpacing: -0.5,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 8,
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.bgMuted,
-    borderRadius: theme.radius.sm,
+    borderRadius: 12,
     padding: 2,
   },
   qtyBtn: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
   qtyDisplay: {
-    minWidth: 44,
+    minWidth: 36,
     alignItems: 'center',
   },
   qtyText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: theme.font.bodyBold,
     color: theme.colors.textPrimary,
-  },
-  removeBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  removeText: {
-    fontSize: 13,
-    fontFamily: theme.font.bodyMedium,
-    color: theme.colors.error,
   },
 });

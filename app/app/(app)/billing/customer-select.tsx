@@ -128,49 +128,54 @@ export default function CustomerSelectScreen() {
                   <Text style={styles.avatarText}>{foundCustomer.name.charAt(0).toUpperCase()}</Text>
                 </View>
                 <View style={styles.profileInfo}>
-                  <Text style={styles.customerName}>{foundCustomer.name}</Text>
-                  <Text style={styles.customerMobile}>{foundCustomer.mobile}</Text>
-                  <View style={styles.tagBadge}>
-                    <Text style={styles.tagText}>{foundCustomer.tag}</Text>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.customerName}>{foundCustomer.name}</Text>
+                    <View style={styles.tagBadge}>
+                      <Text style={styles.tagText}>{foundCustomer.tag}</Text>
+                    </View>
                   </View>
+                  <Text style={styles.customerMobile}>{foundCustomer.mobile}</Text>
+                  {foundCustomer.email && <Text numberOfLines={1} style={styles.customerEmail}>{foundCustomer.email}</Text>}
                 </View>
               </View>
               <View style={styles.statsRow}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Total Spend</Text>
                   <Text style={styles.statValue}>{formatCurrency(foundCustomer.totalSpend)}</Text>
+                  <Text style={styles.statLabel}>Total Spend</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Bills</Text>
                   <Text style={styles.statValue}>{(foundCustomer.bills || []).length}</Text>
+                  <Text style={styles.statLabel}>Bills</Text>
                 </View>
               </View>
             </AppCard>
 
-            <Text style={[styles.sectionTitle, { marginTop: 32 }]}>Select Vehicle (Optional)</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.vehicleScroll}>
-              <TouchableOpacity 
-                style={[styles.skipCard, !selectedVehicleId && styles.selectedSkip]}
-                onPress={() => setSelectedVehicleId(null)}
-              >
-                <MaterialCommunityIcons 
-                  name="car-off" 
-                  size={24} 
-                  color={!selectedVehicleId ? theme.colors.primary : theme.colors.textMuted} 
-                />
-                <Text style={[styles.skipText, !selectedVehicleId && styles.selectedSkipText]}>Skip Vehicle</Text>
-              </TouchableOpacity>
-              
-              {foundCustomer.vehicles.map((v: any) => (
-                <VehicleCard
-                  key={v.id}
-                  vehicle={v}
-                  selected={selectedVehicleId === v.id}
-                  onPress={() => setSelectedVehicleId(v.id)}
-                />
-              ))}
-            </ScrollView>
+            <Text style={[styles.sectionTitle, { marginTop: 32 }]}>Select Vehicle</Text>
+            <View style={styles.vehicleList}>
+              {foundCustomer.vehicles && foundCustomer.vehicles.length > 0 ? (
+                foundCustomer.vehicles.map((v: any) => (
+                  <VehicleCard
+                    key={v.id}
+                    vehicle={v}
+                    selected={selectedVehicleId === v.id}
+                    onPress={() => setSelectedVehicleId(v.id)}
+                  />
+                ))
+              ) : (
+                <View style={styles.emptyVehicleState}>
+                  <MaterialCommunityIcons name="car-info" size={32} color={theme.colors.textMuted} />
+                  <Text style={styles.emptyVehicleText}>No vehicles found. Please add a vehicle for this customer first.</Text>
+                  <AppButton 
+                    title="Add Vehicle" 
+                    variant="outline" 
+                    size="sm"
+                    onPress={() => router.push({ pathname: '/(app)/customers/[id]', params: { id: foundCustomer.id } })}
+                    style={{ marginTop: 12 }}
+                  />
+                </View>
+              )}
+            </View>
 
             <AppButton
               title="Proceed to Payment"
@@ -178,6 +183,7 @@ export default function CustomerSelectScreen() {
               size="lg"
               style={styles.continueBtn}
               rightIcon="arrow-forward"
+              disabled={!selectedVehicleId}
             />
           </View>
         )}
@@ -342,46 +348,47 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.bgMuted,
   },
   statLabel: {
-    fontSize: 12,
-    fontFamily: theme.font.body,
+    fontSize: 10,
+    fontFamily: theme.font.bodyBold,
     color: theme.colors.textMuted,
-    marginBottom: 4,
+    textTransform: 'uppercase',
+    marginTop: 4,
   },
   statValue: {
     fontSize: 16,
     fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
   },
-  vehicleScroll: {
+  nameRow: {
     flexDirection: 'row',
-    marginBottom: 32,
-    paddingVertical: 8,
-  },
-  skipCard: {
-    width: 130,
-    height: 140,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.bgCard,
-    borderWidth: 1.5,
-    borderColor: theme.colors.border,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginRight: 12,
-    ...theme.shadow.sm,
   },
-  selectedSkip: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primaryLight,
-  },
-  skipText: {
+  customerEmail: {
     fontSize: 12,
-    fontFamily: theme.font.bodyMedium,
-    color: theme.colors.textSecondary,
-    marginTop: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textMuted,
+    marginTop: 4,
   },
-  selectedSkipText: {
-    color: theme.colors.primary,
-    fontFamily: theme.font.bodyBold,
+  vehicleList: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  emptyVehicleState: {
+    padding: 24,
+    backgroundColor: theme.colors.bgMuted,
+    borderRadius: theme.radius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderStyle: 'dashed',
+  },
+  emptyVehicleText: {
+    fontSize: 14,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 8,
   },
   continueBtn: {
     marginTop: 24,

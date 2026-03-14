@@ -105,6 +105,7 @@ export class BillingService {
             sgst: totals.sgst,
             total: totals.total,
             paymentMode: dto.paymentMode,
+            status: dto.status ?? 'PAID',
             items: {
               create: dto.items.map((item) => ({
                 productId: item.productId,
@@ -301,7 +302,7 @@ export class BillingService {
     return bill;
   }
 
-  async getBills(page: number, limit: number, startDate?: string, endDate?: string) {
+  async getBills(page: number, limit: number, startDate?: string, endDate?: string, status?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};
     if (startDate && endDate) {
@@ -309,6 +310,9 @@ export class BillingService {
         gte: new Date(startDate),
         lte: new Date(endDate),
       };
+    }
+    if (status && status !== 'All') {
+      where.status = status;
     }
 
     const [data, total] = await Promise.all([
@@ -329,6 +333,7 @@ export class BillingService {
       id: b.id,
       billNumber: b.billNumber,
       total: b.total,
+      status: b.status,
       createdAt: b.createdAt,
       customerName: b.customer?.name || 'Unknown',
     }));
