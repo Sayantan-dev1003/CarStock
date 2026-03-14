@@ -57,7 +57,7 @@ export default function PinScreen() {
     const success = await authenticate();
     if (success) {
       setPinVerified(true);
-      router.replace('/(app)/dashboard');
+      router.replace('/(app)/(tabs)/dashboard');
     }
   };
 
@@ -99,7 +99,7 @@ export default function PinScreen() {
         if (enteredPin === confirmPin) {
           await storage.setPin(enteredPin);
           setPinVerified(true);
-          router.replace('/(app)/dashboard');
+          router.replace('/(app)/(tabs)/dashboard');
         } else {
           triggerShake();
           Alert.alert('Error', 'PINs do not match. Try again.');
@@ -111,7 +111,7 @@ export default function PinScreen() {
     } else {
       if (enteredPin === storedPin) {
         setPinVerified(true);
-        router.replace('/(app)/dashboard');
+        router.replace('/(app)/(tabs)/dashboard');
       } else {
         triggerShake();
         setPin('');

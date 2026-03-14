@@ -86,7 +86,7 @@ export default function CustomerDetailScreen() {
           />
           <AppButton
             title="Create Bill"
-            onPress={() => router.push({ pathname: '/(app)/billing', params: { customerId: customer.id } })}
+            onPress={() => router.push({ pathname: '/(app)/(tabs)/billing', params: { customerId: customer.id } })}
             leftIcon="add"
             style={[styles.actionBtn, { marginLeft: 12 }]}
           />

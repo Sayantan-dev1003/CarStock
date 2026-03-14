@@ -15,18 +15,18 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../../src/constants/theme';
-import { useBillingStore } from '../../../src/store/billing.store';
-import { ProductSearchBar } from '../../../src/components/billing/ProductSearchBar';
-import { BillLineItem } from '../../../src/components/billing/BillLineItem';
-import { BillSummaryBar } from '../../../src/components/billing/BillSummaryBar';
-import { EmptyState } from '../../../src/components/common/EmptyState';
-import { AppButton } from '../../../src/components/common/AppButton';
-import { ProductSearchResult } from '../../../src/types/product.types';
+import { theme } from '../../../../src/constants/theme';
+import { useBillingStore } from '../../../../src/store/billing.store';
+import { ProductSearchBar } from '../../../../src/components/billing/ProductSearchBar';
+import { BillLineItem } from '../../../../src/components/billing/BillLineItem';
+import { BillSummaryBar } from '../../../../src/components/billing/BillSummaryBar';
+import { EmptyState } from '../../../../src/components/common/EmptyState';
+import { AppButton } from '../../../../src/components/common/AppButton';
+import { ProductSearchResult } from '../../../../src/types/product.types';
 import { useQuery } from '@tanstack/react-query';
-import { billingApi } from '../../../src/api/billing.api';
-import { BillCard } from '../../../src/components/billing/BillCard';
-import { AppHeader } from '../../../src/components/common/AppHeader';
+import { billingApi } from '../../../../src/api/billing.api';
+import { BillCard } from '../../../../src/components/billing/BillCard';
+import { AppHeader } from '../../../../src/components/common/AppHeader';
 
 const FILTERS = ['All', 'Paid', 'Pending', 'Overdue'];
 
@@ -350,3 +350,4 @@ const styles = StyleSheet.create({
     flex: 0.48,
   },
 });
+

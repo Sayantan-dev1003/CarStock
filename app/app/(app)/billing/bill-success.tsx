@@ -18,7 +18,7 @@ import Animated, {
   withSequence,
   withTiming
 } from 'react-native-reanimated';
-import { theme } from '../../../src/constants/theme';
+import { theme, Colors } from '../../../src/constants/theme';
 import { AppHeader } from '../../../src/components/common/AppHeader';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { useBillingStore } from '../../../src/store/billing.store';
@@ -157,14 +157,14 @@ export default function BillSuccessScreen() {
           <View style={styles.btnRow}>
             <AppButton
               title="New Bill"
-              onPress={() => router.replace('/(app)/billing')}
+              onPress={() => router.replace('/(app)/(tabs)/billing')}
               style={styles.flexBtn}
               leftIcon="add"
             />
           </View>
           <AppButton
             title="Back to Dashboard"
-            onPress={() => router.replace('/(app)/dashboard')}
+            onPress={() => router.replace('/(app)/(tabs)/dashboard')}
             variant="outline"
             style={styles.dashboardBtn}
           />

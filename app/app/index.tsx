@@ -12,7 +12,7 @@ export default function Index() {
     // Small delay to show splash feel
     const timer = setTimeout(() => {
       if (isAuthenticated) {
-        router.replace('/(app)/dashboard');
+        router.replace('/(app)/(tabs)/dashboard');
       } else {
         router.replace('/(auth)/login');
       }

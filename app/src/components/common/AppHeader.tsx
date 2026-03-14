@@ -41,7 +41,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.leftSection}>
         {showBackButton && (
           <TouchableOpacity 

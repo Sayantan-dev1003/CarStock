@@ -12,10 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { theme } from '../../../src/constants/theme';
-import { useAuthStore } from '../../../src/store/auth.store';
-import { useBiometric } from '../../../src/hooks/useBiometric';
-import { AppHeader } from '../../../src/components/common/AppHeader';
+import { theme } from '../../../../src/constants/theme';
+import { useAuthStore } from '../../../../src/store/auth.store';
+import { useBiometric } from '../../../../src/hooks/useBiometric';
+import { AppHeader } from '../../../../src/components/common/AppHeader';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -322,3 +322,4 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
+

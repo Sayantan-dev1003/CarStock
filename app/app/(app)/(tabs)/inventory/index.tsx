@@ -13,18 +13,17 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { theme } from '../../../src/constants/theme';
-import { productsApi } from '../../../src/api/products.api';
-import { ProductCard } from '../../../src/components/inventory/ProductCard';
-import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
-import { EmptyState } from '../../../src/components/common/EmptyState';
-import { ProductCategory } from '../../../src/types/product.types';
+import { theme } from '../../../../src/constants/theme';
+import { productsApi } from '../../../../src/api/products.api';
+import { ProductCard } from '../../../../src/components/inventory/ProductCard';
+import { LoadingSpinner } from '../../../../src/components/common/LoadingSpinner';
+import { EmptyState } from '../../../../src/components/common/EmptyState';
+import { ProductCategory } from '../../../../src/types/product.types';
+import { AppHeader } from '../../../../src/components/common/AppHeader';
 
 const CATEGORIES: (ProductCategory | 'ALL' | 'LOW_STOCK')[] = [
   'ALL', 'LOW_STOCK', 'TYRES', 'BATTERIES', 'WIPERS', 'BRAKES', 'SEAT_COVERS', 'LIGHTING', 'AUDIO', 'OILS', 'ELECTRICAL', 'OTHER'
 ];
-
-import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function InventoryScreen() {
   const router = useRouter();
@@ -250,3 +249,4 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
 });
+

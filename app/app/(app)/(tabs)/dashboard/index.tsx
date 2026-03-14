@@ -11,18 +11,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { theme } from '../../../src/constants/theme';
-import { AppCard } from '../../../src/components/common/AppCard';
-import { reportsApi } from '../../../src/api/reports.api';
-import { productsApi } from '../../../src/api/products.api';
-import { AppHeader } from '../../../src/components/common/AppHeader';
-import { MetricCard } from '../../../src/components/dashboard/MetricCard';
-import { RevenueChart } from '../../../src/components/dashboard/RevenueChart';
-import { useSocket } from '../../../src/hooks/useSocket';
-import { useNotifications } from '../../../src/hooks/useNotifications';
-import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
-import { formatCurrency, formatDate } from '../../../src/utils/format';
-import { AppButton } from '../../../src/components/common/AppButton';
+import { theme } from '../../../../src/constants/theme';
+import { AppCard } from '../../../../src/components/common/AppCard';
+import { reportsApi } from '../../../../src/api/reports.api';
+import { productsApi } from '../../../../src/api/products.api';
+import { AppHeader } from '../../../../src/components/common/AppHeader';
+import { MetricCard } from '../../../../src/components/dashboard/MetricCard';
+import { RevenueChart } from '../../../../src/components/dashboard/RevenueChart';
+import { useSocket } from '../../../../src/hooks/useSocket';
+import { useNotifications } from '../../../../src/hooks/useNotifications';
+import { LoadingSpinner } from '../../../../src/components/common/LoadingSpinner';
+import { formatCurrency, formatDate } from '../../../../src/utils/format';
+import { AppButton } from '../../../../src/components/common/AppButton';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -80,7 +80,7 @@ export default function DashboardScreen() {
         subtitle="Here's your shop overview"
         rightAction={{
           icon: 'notifications-outline',
-          onPress: () => router.push('/(app)/settings'), // Example action
+          onPress: () => router.push('/(app)/(tabs)/settings'),
         }}
       />
       <ScrollView 
@@ -129,7 +129,7 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>LOW STOCK ALERT</Text>
-            <TouchableOpacity onPress={() => router.push('/(app)/inventory')}>
+            <TouchableOpacity onPress={() => router.push('/(app)/(tabs)/inventory')}>
               <Text style={styles.viewAll}>View All</Text>
             </TouchableOpacity>
           </View>
@@ -263,3 +263,4 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl,
   },
 });
+

@@ -13,15 +13,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { theme } from '../../../src/constants/theme';
-import { customersApi } from '../../../src/api/customers.api';
-import { CustomerCard } from '../../../src/components/customers/CustomerCard';
-import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
-import { EmptyState } from '../../../src/components/common/EmptyState';
+import { theme } from '../../../../src/constants/theme';
+import { customersApi } from '../../../../src/api/customers.api';
+import { CustomerCard } from '../../../../src/components/customers/CustomerCard';
+import { LoadingSpinner } from '../../../../src/components/common/LoadingSpinner';
+import { EmptyState } from '../../../../src/components/common/EmptyState';
+import { AppHeader } from '../../../../src/components/common/AppHeader';
 
 const TAGS = ['ALL', 'REGULAR', 'VIP', 'NEW', 'INACTIVE'];
-
-import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function CustomersScreen() {
   const router = useRouter();
@@ -185,3 +184,4 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 });
+
