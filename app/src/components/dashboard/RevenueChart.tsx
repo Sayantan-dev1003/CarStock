@@ -1,14 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { CartesianChart, Bar, useChartPressState } from 'victory-native';
-import { useFont } from '@shopify/react-native-skia';
+import { BarChart } from 'react-native-gifted-charts';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { formatCurrency } from '../../utils/format';
 
 interface RevenueData {
   day: string;
   revenue: number;
-  [key: string]: string | number;
 }
 
 interface RevenueChartProps {
@@ -26,28 +24,44 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
     );
   }
 
+  const chartData = data.map((item) => ({
+    value: item.revenue,
+    label: item.day,
+    frontColor: Colors.primary,
+    topLabelComponent: () => (
+      <Text style={styles.barLabel}>
+        {item.revenue > 0 ? formatCurrency(item.revenue) : ''}
+      </Text>
+    ),
+  }));
+
+  const maxValue = Math.max(...data.map((d) => d.revenue), 1);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Revenue This Week</Text>
-      <View style={{ height: 220, width: '100%' }}>
-        <CartesianChart
-          data={data}
-          xKey="day"
-          yKeys={["revenue"]}
-          padding={{ top: 20, bottom: 20, left: 10, right: 10 }}
-        >
-          {({ points, chartBounds }) => (
-            <Bar
-              points={points.revenue}
-              chartBounds={chartBounds}
-              color={Colors.primary}
-              roundedCorners={{
-                topLeft: 4,
-                topRight: 4,
-              }}
-            />
-          )}
-        </CartesianChart>
+      <View style={styles.chartWrapper}>
+        <BarChart
+          data={chartData}
+          width={width - Spacing.md * 4 - 32}
+          height={180}
+          barWidth={32}
+          spacing={12}
+          roundedTop
+          roundedBottom={false}
+          hideRules={false}
+          rulesColor={Colors.grey200}
+          rulesType="solid"
+          noOfSections={4}
+          maxValue={Math.ceil(maxValue * 1.2)}
+          yAxisThickness={0}
+          xAxisThickness={1}
+          xAxisColor={Colors.grey200}
+          yAxisTextStyle={styles.axisLabel}
+          xAxisLabelTextStyle={styles.axisLabel}
+          isAnimated
+          animationDuration={600}
+        />
       </View>
     </View>
   );
@@ -68,9 +82,18 @@ const styles = StyleSheet.create({
     color: Colors.dark,
     marginBottom: Spacing.sm,
   },
-  chartContainer: {
+  chartWrapper: {
     alignItems: 'center',
-    marginLeft: -Spacing.md, // Offset chart padding
+    marginTop: Spacing.sm,
+  },
+  barLabel: {
+    fontSize: 9,
+    color: Colors.grey500,
+    marginBottom: 2,
+  },
+  axisLabel: {
+    fontSize: 10,
+    color: Colors.grey500,
   },
   emptyContainer: {
     height: 200,
