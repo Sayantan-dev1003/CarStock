@@ -27,6 +27,7 @@ import { useQuery } from '@tanstack/react-query';
 import { billingApi } from '../../../../src/api/billing.api';
 import { BillCard } from '../../../../src/components/billing/BillCard';
 import { AppHeader } from '../../../../src/components/common/AppHeader';
+import { formatDate } from '../../../../src/utils/format';
 
 const FILTERS = ['All', 'Paid', 'Pending', 'Overdue'];
 
@@ -80,39 +81,38 @@ export default function BillingScreen() {
   const renderHistoryStep = () => (
     <View style={styles.historyContainer}>
       <AppHeader 
-        title="Billing"
-        subtitle="Manage your invoices and payments"
+        title="Billing History"
+        subtitle={formatDate(new Date())}
         rightAction={{
-          icon: 'add-circle',
+          icon: 'add',
           onPress: () => setIsCreating(true),
         }}
       />
 
-      <View style={styles.summaryStrip}>
-        <View style={styles.summaryCard}>
-          <View style={[styles.dot, { backgroundColor: theme.colors.textPrimary }]} />
+      <View style={styles.statsContainer}>
+        <View style={styles.statsCard}>
+          <View style={[styles.statsIconCircle, { backgroundColor: theme.colors.primaryLight }]}>
+            <Ionicons name="receipt" size={20} color={theme.colors.primary} />
+          </View>
           <View>
-            <Text style={styles.summaryValue}>{billsData?.data.length || 0}</Text>
-            <Text style={styles.summaryLabel}>Total Bills</Text>
+            <Text style={styles.statsValue}>{billsData?.data?.length || 0}</Text>
+            <Text style={styles.statsLabel}>Total Invoices</Text>
           </View>
         </View>
-        <View style={styles.summaryCard}>
-          <View style={[styles.dot, { backgroundColor: theme.colors.success }]} />
-          <View>
-            <Text style={styles.summaryValue}>{billsData?.data.filter((b: any) => b.total > 0).length || 0}</Text>
-            <Text style={styles.summaryLabel}>Paid</Text>
+        <View style={styles.statsCard}>
+          <View style={[styles.statsIconCircle, { backgroundColor: '#D1FAE5' }]}>
+            <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
           </View>
-        </View>
-        <View style={styles.summaryCard}>
-          <View style={[styles.dot, { backgroundColor: theme.colors.warning }]} />
           <View>
-            <Text style={styles.summaryValue}>0</Text>
-            <Text style={styles.summaryLabel}>Pending</Text>
+            <Text style={styles.statsValue}>
+              {billsData?.data?.filter((b: any) => b.total > 0)?.length || 0}
+            </Text>
+            <Text style={styles.statsLabel}>Paid Bills</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.filterBarContainer}>
+      <View style={styles.filterSection}>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
@@ -128,6 +128,7 @@ export default function BillingScreen() {
                   isActive ? styles.activeFilterPill : styles.inactiveFilterPill
                 ]}
                 onPress={() => setSelectedFilter(filter)}
+                activeOpacity={0.7}
               >
                 <Text style={[
                   styles.filterText,
@@ -151,8 +152,14 @@ export default function BillingScreen() {
           />
         )}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={['#B45309']} />
+          <RefreshControl 
+            refreshing={isRefetching} 
+            onRefresh={refetch} 
+            colors={[theme.colors.primary]} 
+            tintColor={theme.colors.primary}
+          />
         }
         ListEmptyComponent={
           <EmptyState
@@ -168,7 +175,7 @@ export default function BillingScreen() {
   const renderCreationStep = () => (
     <View style={styles.creationContainer}>
       <AppHeader 
-        title="Create New Bill" 
+        title="New Invoice" 
         showBackButton 
         onBackPress={() => setIsCreating(false)} 
       />
@@ -213,7 +220,7 @@ export default function BillingScreen() {
     <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       {isCreating ? renderCreationStep() : renderHistoryStep()}
 
-      {/* Discount Modal */}
+      {/* Discount Modal unchanged */}
       <Modal
         visible={isDiscountModalVisible}
         transparent
@@ -271,82 +278,84 @@ const styles = StyleSheet.create({
   historyContainer: {
     flex: 1,
   },
-  summaryStrip: {
+  statsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     gap: 12,
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: 24,
+    marginTop: 12,
   },
-  summaryCard: {
+  statsCard: {
     flex: 1,
     backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.sm,
-    padding: 12,
+    borderRadius: 20,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.border,
+    ...theme.shadow.sm,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  statsIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 10,
   },
-  summaryValue: {
-    fontSize: 16,
+  statsValue: {
+    fontSize: 18,
     fontFamily: theme.font.heading,
     color: theme.colors.textPrimary,
   },
-  summaryLabel: {
-    fontSize: 10,
+  statsLabel: {
+    fontSize: 11,
     fontFamily: theme.font.body,
-    color: theme.colors.textMuted,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
   },
-  filterBarContainer: {
-    marginBottom: 16,
+  filterSection: {
+    marginBottom: 20,
   },
   filterContent: {
     paddingHorizontal: 20,
-    gap: 8,
+    gap: 10,
   },
   filterPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: theme.radius.full,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1.5,
   },
   activeFilterPill: {
-    backgroundColor: theme.colors.primaryLight,
+    backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
   inactiveFilterPill: {
-    backgroundColor: theme.colors.bgMuted,
-    borderColor: 'transparent',
+    backgroundColor: theme.colors.bgCard,
+    borderColor: theme.colors.border,
   },
   filterText: {
     fontSize: 13,
-    fontFamily: theme.font.bodyMedium,
+    fontFamily: theme.font.bodySemiBold,
   },
   activeFilterText: {
-    color: theme.colors.primary,
+    color: theme.colors.bgCard,
   },
   inactiveFilterText: {
-    color: theme.colors.textMuted,
+    color: theme.colors.textSecondary,
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: 40,
   },
   creationContainer: {
     flex: 1,
   },
   searchSection: {
     padding: 20,
-    backgroundColor: theme.colors.bgCard,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.bg,
   },
   createListContent: {
     padding: 20,
@@ -354,20 +363,21 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(69, 26, 3, 0.4)', // subtly tinted dark amber overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   modalContent: {
     backgroundColor: theme.colors.bgCard,
-    borderRadius: theme.radius.md,
+    borderRadius: 24,
     padding: 24,
+    ...theme.shadow.lg,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   modalTitle: {
     fontSize: 20,
@@ -375,34 +385,29 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   modalBody: {
-    paddingVertical: 5,
+    gap: 16,
   },
   modalLabel: {
     fontSize: 12,
     fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textMuted,
     textTransform: 'uppercase',
-    marginBottom: 8,
-    letterSpacing: 0.5,
   },
   discountInput: {
-    borderWidth: 1.5,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.bgMuted,
+    borderRadius: 16,
     padding: 16,
     fontSize: 24,
     fontFamily: theme.font.heading,
     color: theme.colors.primary,
-    marginBottom: 24,
-    backgroundColor: theme.colors.bgMuted,
     textAlign: 'center',
   },
   modalActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
   },
   modalBtn: {
-    flex: 0.48,
+    flex: 1,
   },
 });
 
