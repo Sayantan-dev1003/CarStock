@@ -26,7 +26,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         selected && styles.selectedCard
       ]}
     >
-      <View style={styles.header}>
+      <View style={styles.container}>
         <View style={styles.iconContainer}>
           <MaterialCommunityIcons 
             name="car" 
@@ -34,87 +34,102 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             color={selected ? theme.colors.primary : theme.colors.textMuted} 
           />
         </View>
-        {onDelete && (
-          <TouchableOpacity onPress={() => onDelete(vehicle.id)} style={styles.deleteBtn}>
-            <MaterialCommunityIcons name="trash-can-outline" size={20} color={theme.colors.error} />
-          </TouchableOpacity>
-        )}
-      </View>
-      
-      <View style={styles.content}>
-        <Text style={[styles.model, selected && styles.selectedText]} numberOfLines={1}>
-          {vehicle.make} {vehicle.model}
-        </Text>
-        <Text style={styles.details}>{vehicle.year} • {vehicle.fuelType}</Text>
-        {vehicle.regNumber && (
-          <View style={styles.regBadge}>
-            <Text style={styles.regText}>{vehicle.regNumber.toUpperCase()}</Text>
+        
+        <View style={styles.content}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.model, selected && styles.selectedText]} numberOfLines={1}>
+              {vehicle.make} {vehicle.model}
+            </Text>
+            {onDelete && (
+              <TouchableOpacity onPress={() => onDelete(vehicle.id)} style={styles.deleteBtn}>
+                <MaterialCommunityIcons name="trash-can-outline" size={20} color={theme.colors.error} />
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          <View style={styles.detailsRow}>
+            <Text style={styles.details}>{vehicle.year} • {vehicle.fuelType}</Text>
+            {vehicle.regNumber && (
+              <View style={styles.regBadge}>
+                <Text style={styles.regText}>{vehicle.regNumber.toUpperCase()}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {selected && (
+          <View style={styles.selectedIndicator}>
+            <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.primary} />
           </View>
         )}
       </View>
-      
-      {selected && (
-        <View style={styles.selectedBadge}>
-          <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.primary} />
-        </View>
-      )}
     </AppCard>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    width: 160,
-    marginRight: theme.spacing.md,
-    padding: theme.spacing.md,
+    width: '100%',
+    marginBottom: theme.spacing.md,
+    padding: theme.spacing.sm,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bgCard,
   },
   selectedCard: {
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.primaryLight,
   },
-  header: {
+  container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.sm,
+    alignItems: 'center',
   },
   iconContainer: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.bgMuted,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  deleteBtn: {
-    padding: 4,
-  },
   content: {
-    marginTop: theme.spacing.xs,
+    flex: 1,
+    marginLeft: theme.spacing.md,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
   },
   model: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: theme.font.bodyBold,
     color: theme.colors.textPrimary,
+    flex: 1,
   },
   selectedText: {
     color: theme.colors.primary,
   },
   details: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: theme.font.body,
     color: theme.colors.textSecondary,
-    marginTop: 2,
+  },
+  deleteBtn: {
+    padding: 8,
+    marginLeft: 8,
   },
   regBadge: {
     backgroundColor: theme.colors.bgMuted,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: theme.radius.sm,
-    marginTop: theme.spacing.md,
-    alignSelf: 'flex-start',
+    marginLeft: theme.spacing.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
@@ -124,11 +139,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     letterSpacing: 0.5,
   },
-  selectedBadge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: theme.colors.bgCard,
-    borderRadius: 10,
+  selectedIndicator: {
+    marginLeft: theme.spacing.sm,
   },
 });

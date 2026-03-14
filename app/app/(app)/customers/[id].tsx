@@ -6,7 +6,7 @@ import {
   ScrollView, 
   TouchableOpacity, 
   Alert,
-  SafeAreaView
+  Platform
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -47,19 +47,23 @@ export default function CustomerDetailScreen() {
   if (!customer) return <View style={styles.container}><Text>Customer not found</Text></View>;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <AppHeader title="Customer Profile" showBackButton />
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
         {/* Profile Card */}
         <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{customer.name.substring(0, 2).toUpperCase()}</Text>
-          </View>
-          <Text style={styles.name}>{customer.name}</Text>
-          <Text style={styles.mobile}>{customer.mobile}</Text>
-          <View style={styles.badgeRow}>
-            <StatusBadge status={customer.tag} />
-            {customer.email && <Text style={styles.emailText}>{customer.email}</Text>}
+          <View style={styles.profileMain}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{customer.name.substring(0, 2).toUpperCase()}</Text>
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.name}>{customer.name}</Text>
+              <Text style={styles.mobile}>{customer.mobile}</Text>
+              <View style={styles.badgeRow}>
+                <StatusBadge status={customer.tag} />
+                {customer.email && <Text numberOfLines={1} style={styles.emailText}>{customer.email}</Text>}
+              </View>
+            </View>
           </View>
 
           <View style={styles.statsCard}>
@@ -174,7 +178,7 @@ export default function CustomerDetailScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -188,42 +192,48 @@ const styles = StyleSheet.create({
   },
   profileHeader: {
     backgroundColor: theme.colors.bgCard,
-    padding: 24,
-    alignItems: 'center',
+    padding: 20,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     ...theme.shadow.card,
   },
+  profileMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 16,
+  },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
+    width: 68,
+    height: 68,
+    borderRadius: 20,
     backgroundColor: theme.colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
   },
   avatarText: {
-    fontSize: 28,
+    fontSize: 24,
     fontFamily: theme.font.heading,
     color: theme.colors.primary,
   },
+  profileInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
   name: {
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: theme.font.bodyBold,
     color: theme.colors.textPrimary,
-    marginBottom: 4,
   },
   mobile: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: theme.font.body,
     color: theme.colors.textSecondary,
-    marginBottom: 16,
+    marginVertical: 2,
   },
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
   },
   emailText: {
     fontSize: 13,
@@ -235,9 +245,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: theme.colors.bgMuted,
     borderRadius: theme.radius.lg,
-    padding: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     width: '100%',
-    marginTop: 8,
   },
   statItem: {
     flex: 1,
@@ -263,7 +273,7 @@ const styles = StyleSheet.create({
   actionsBar: {
     flexDirection: 'row',
     paddingHorizontal: 24,
-    marginTop: 24,
+    marginTop: 20,
   },
   actionBtn: {
     flex: 1,
@@ -271,7 +281,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     paddingHorizontal: 24,
-    marginTop: 32,
+    marginTop: 24,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.bgMuted,
   },
@@ -297,8 +307,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   vehicleList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    width: '100%',
   },
   billCard: {
     backgroundColor: theme.colors.bgCard,
