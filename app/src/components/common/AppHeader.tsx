@@ -20,6 +20,7 @@ interface AppHeaderProps {
     icon: keyof typeof Ionicons.glyphMap;
     onPress: () => void;
   };
+  backgroundColor?: string;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ 
@@ -27,7 +28,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   subtitle, 
   showBackButton = false,
   onBackPress,
-  rightAction 
+  rightAction,
+  backgroundColor = theme.colors.bg
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -41,7 +43,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 12, backgroundColor }]}>
       <View style={styles.headerRow}>
         {showBackButton && (
           <TouchableOpacity 

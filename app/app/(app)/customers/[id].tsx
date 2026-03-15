@@ -6,13 +6,17 @@ import {
   ScrollView, 
   TouchableOpacity, 
   Alert,
-  Platform
+  Platform,
+  Linking,
+  ActivityIndicator
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../../src/constants/theme';
 import { customersApi } from '../../../src/api/customers.api';
+import { billingApi } from '../../../src/api/billing.api';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { VehicleCard } from '../../../src/components/customers/VehicleCard';
@@ -22,8 +26,39 @@ import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function CustomerDetailScreen() {
   const { id } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'vehicles' | 'bills'>('vehicles');
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const handleViewPdf = async (bill: any) => {
+    if (bill.pdfUrl) {
+      Linking.openURL(bill.pdfUrl);
+    } else {
+      try {
+        const fullBill = await billingApi.getBill(bill.id);
+        if (fullBill.pdfUrl) {
+          Linking.openURL(fullBill.pdfUrl);
+        } else {
+          Alert.alert('Error', 'PDF not available.');
+        }
+      } catch (err) {
+        Alert.alert('Error', 'Failed to fetch bill PDF.');
+      }
+    }
+  };
+
+  const handleResend = async (billId: string) => {
+    setResendingId(billId);
+    try {
+      await billingApi.resendBill(billId);
+      Alert.alert('Success', 'Invoice resent successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to resend invoice.');
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   const { data: customer, isLoading } = useQuery({
     queryKey: ['customer', id],
@@ -48,8 +83,7 @@ export default function CustomerDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Customer Profile" showBackButton />
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <AppHeader title="Customer Profile" showBackButton backgroundColor={theme.colors.bgCard} />
         {/* Profile Card */}
         <View style={styles.profileHeader}>
           <View style={styles.profileMain}>
@@ -117,7 +151,10 @@ export default function CustomerDetailScreen() {
         </View>
 
         {/* Content */}
-        <View style={styles.tabContent}>
+        <ScrollView 
+          style={{ flex: 1 }} 
+          contentContainerStyle={[styles.tabContent, { paddingBottom: insets.bottom + 24 }]}
+        >
           {activeTab === 'vehicles' ? (
             <View>
               {customer.vehicles && customer.vehicles.length > 0 ? (
@@ -141,7 +178,7 @@ export default function CustomerDetailScreen() {
                     key={bill.id} 
                     style={styles.billCard}
                     activeOpacity={0.7}
-                    onPress={() => router.push({ pathname: '/(app)/billing/bill-success', params: { id: bill.id } })}
+                    onPress={() => handleViewPdf(bill)}
                   >
                     <View style={styles.billMain}>
                       <View>
@@ -163,6 +200,13 @@ export default function CustomerDetailScreen() {
                           color={bill.whatsappSent ? theme.colors.success : theme.colors.textMuted} 
                           style={{ marginLeft: 12 }}
                         />
+                        {resendingId === bill.id ? (
+                          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginLeft: 12 }} />
+                        ) : (
+                          <TouchableOpacity style={styles.resendBtnSmall} onPress={() => handleResend(bill.id)}>
+                            <Text style={styles.resendTextSmall}>Resend</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
                       <Text style={styles.viewLink}>View Invoice</Text>
                     </View>
@@ -176,8 +220,7 @@ export default function CustomerDetailScreen() {
               )}
             </View>
           )}
-        </View>
-      </ScrollView>
+        </ScrollView>
     </View>
   );
 }
@@ -193,9 +236,6 @@ const styles = StyleSheet.create({
   profileHeader: {
     backgroundColor: theme.colors.bgCard,
     padding: 20,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    ...theme.shadow.card,
   },
   profileMain: {
     flexDirection: 'row',
@@ -354,6 +394,18 @@ const styles = StyleSheet.create({
   },
   viewLink: {
     fontSize: 12,
+    fontFamily: theme.font.bodyBold,
+    color: theme.colors.primary,
+  },
+  resendBtnSmall: {
+    marginLeft: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: theme.colors.primaryLight,
+  },
+  resendTextSmall: {
+    fontSize: 10,
     fontFamily: theme.font.bodyBold,
     color: theme.colors.primary,
   },
