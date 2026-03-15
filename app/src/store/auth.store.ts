@@ -24,6 +24,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await storage.setAccessToken(access);
     await storage.setRefreshToken(refresh);
     set({ accessToken: access, isAuthenticated: true });
+    
+    const bioEnabled = await storage.getBiometricsEnabled();
+    if (!bioEnabled) {
+      set({ isPinVerified: true });
+    }
   },
 
   setAdmin: (admin) => set({ admin }),
@@ -39,6 +44,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const token = await storage.getAccessToken();
     if (token) {
       set({ accessToken: token, isAuthenticated: true });
+      
+      const bioEnabled = await storage.getBiometricsEnabled();
+      if (!bioEnabled) {
+        set({ isPinVerified: true });
+      }
       return true;
     }
     return false;

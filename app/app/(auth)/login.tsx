@@ -19,7 +19,7 @@ import Animated, {
   withTiming,
   withRepeat
 } from 'react-native-reanimated';
-import { theme } from '../../src/constants/theme';
+import { useTheme } from '../../src/context/ThemeContext';
 import { AppInput } from '../../src/components/common/AppInput';
 import { AppButton } from '../../src/components/common/AppButton';
 import { authApi } from '../../src/api/auth.api';
@@ -30,6 +30,8 @@ const { height } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const setTokens = useAuthStore((state) => state.setTokens);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -153,10 +155,11 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.textPrimary, // Sophisticated near-black
+    backgroundColor: '#1C1917', // Preserved dark header background
   },
   scrollContent: {
     flexGrow: 1,
@@ -177,27 +180,26 @@ const styles = StyleSheet.create({
     ...theme.shadow.lg,
   },
   logoText: {
-    color: theme.colors.bgCard,
+    color: '#FFFFFF', // White text on dark BG
     fontSize: 32,
     fontFamily: theme.font.heading,
   },
   appName: {
-    color: theme.colors.bgCard,
+    color: '#FFFFFF',
     fontSize: 28,
     fontFamily: theme.font.heading,
     letterSpacing: -0.5,
   },
   tagline: {
-    color: theme.colors.textMuted,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
     fontFamily: theme.font.body,
     marginTop: theme.spacing.xs,
-    opacity: 0.8,
   },
   bottomSection: {
     flex: 1,
     minHeight: height * 0.6,
-    backgroundColor: theme.colors.bg,
+    backgroundColor: theme.colors.bgCard,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     padding: theme.spacing.xl,
@@ -236,3 +238,4 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
+}

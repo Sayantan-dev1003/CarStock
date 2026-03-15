@@ -16,13 +16,15 @@ import Animated, {
   withTiming,
   withRepeat
 } from 'react-native-reanimated';
-import { theme } from '../../src/constants/theme';
+import { useTheme } from '../../src/context/ThemeContext';
 import { useAuthStore } from '../../src/store/auth.store';
 import { storage } from '../../src/utils/storage';
 import { useBiometric } from '../../src/hooks/useBiometric';
 
 export default function PinScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { flow } = useLocalSearchParams<{ flow?: string }>();
   const setPinVerified = useAuthStore((state) => state.setPinVerified);
   const { authenticate, checkAvailability } = useBiometric();
@@ -198,10 +200,11 @@ export default function PinScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.textPrimary,
+    backgroundColor: '#1C1917', // Preserved dark background for full screen
     paddingTop: 80,
   },
   header: {
@@ -212,18 +215,18 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 24,
-    backgroundColor: 'rgba(180, 83, 9, 0.1)', // primary at low opacity
+    backgroundColor: 'rgba(217, 119, 6, 0.15)', // light primary accent equivalent
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   title: {
-    color: theme.colors.bgCard,
+    color: '#FFFFFF',
     fontSize: 26,
     fontFamily: theme.font.heading,
   },
   subtitle: {
-    color: theme.colors.textMuted,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 15,
     fontFamily: theme.font.body,
     marginTop: 8,
@@ -273,8 +276,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   keyText: {
-    color: theme.colors.bgCard,
+    color: '#FFFFFF',
     fontSize: 30,
     fontFamily: theme.font.heading,
   },
 });
+}
