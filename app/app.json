@@ -1,23 +1,26 @@
 {
   "expo": {
-    "name": "CarStock Admin",
-    "slug": "carstock-admin",
+    "name": "Ramadhani Car Accessories and Autocare",
+    "slug": "ramadhani-car-accessories-and-autocare",
+    "icon": "./assets/icon.png",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "scheme": "carstock",
+    "scheme": "ramadhani-car-accessories-and-autocare",
     "splash": {
       "backgroundColor": "#E23744"
     },
     "ios": {
-      "bundleIdentifier": "com.carstock.admin",
+      "bundleIdentifier": "com.ramadhani.caraccessoriesandautocare.admin",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is not used in this app"
       }
     },
     "android": {
-      "package": "com.carstock.admin",
-      "permissions": []
+      "package": "com.ramadhani.caraccessoriesandautocare.admin",
+      "permissions": [
+        "android.permission.USE_BIOMETRIC"
+        ]
     },
     "plugins": [
       "expo-router",

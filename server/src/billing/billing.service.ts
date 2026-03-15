@@ -45,9 +45,11 @@ export class BillingService {
       throw new BadRequestException('Discount cannot exceed subtotal');
     }
 
-    const cgst = discountedAmount * 0.09;
-    const sgst = discountedAmount * 0.09;
-    const total = discountedAmount + cgst + sgst;
+    const round = (val: number) => Math.round(val * 100) / 100;
+
+    const cgst = round(discountedAmount * 0.09);
+    const sgst = round(discountedAmount * 0.09);
+    const total = round(discountedAmount + cgst + sgst);
 
     return { subtotal, cgst, sgst, total };
   }

@@ -27,6 +27,7 @@ export default function PinScreen() {
   const styles = createStyles(theme);
   const { flow } = useLocalSearchParams<{ flow?: string }>();
   const setPinVerified = useAuthStore((state) => state.setPinVerified);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const { authenticate, checkAvailability } = useBiometric();
 
   const [pin, setPin] = useState('');
@@ -101,6 +102,24 @@ export default function PinScreen() {
     setPin(pin.slice(0, -1));
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout? You will need to login again with your password.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive', 
+          onPress: async () => {
+            await clearAuth();
+            router.replace('/(auth)/login');
+          } 
+        }
+      ]
+    );
+  };
+
   const handleComplete = async (enteredPin: string) => {
     if (isSettingUp) {
       if (!isConfirming) {
@@ -140,11 +159,21 @@ export default function PinScreen() {
   };
 
   const renderKeypad = () => {
-    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'delete'];
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'logout', '0', 'delete'];
     return (
       <View style={styles.keypad}>
         {keys.map((key, index) => {
-          if (key === '') return <View key={index} style={styles.key} />;
+          if (key === 'logout') {
+            return (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.key} 
+                onPress={handleLogout}
+              >
+                <Text style={[styles.keyText, { fontSize: 13, color: theme.colors.primary }]}>Logout</Text>
+              </TouchableOpacity>
+            );
+          }
           
           return (
             <TouchableOpacity 
@@ -153,7 +182,7 @@ export default function PinScreen() {
               onPress={() => key === 'delete' ? handleDelete() : handleKeyPress(key)}
             >
               {key === 'delete' ? (
-                <MaterialCommunityIcons name="backspace-outline" size={28} color={theme.colors.bgCard} />
+                <MaterialCommunityIcons name="backspace-outline" size={28} color="#FFFFFF" />
               ) : (
                 <Text style={styles.keyText}>{key}</Text>
               )}
