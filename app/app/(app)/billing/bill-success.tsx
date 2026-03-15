@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -28,6 +28,7 @@ import { billingApi } from '../../../src/api/billing.api';
 
 export default function BillSuccessScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const clearBill = useBillingStore((state) => state.clearBill);
 
@@ -178,7 +179,7 @@ export default function BillSuccessScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        <View style={styles.bottomActions}>
+        <View style={[styles.bottomActions, { paddingBottom: insets.bottom + 24 }]}>
           <AppButton
             title="Create New Bill"
             onPress={() => router.replace('/(app)/(tabs)/billing')}

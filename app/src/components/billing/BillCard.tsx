@@ -4,6 +4,7 @@ import { theme } from '../../constants/theme';
 import { formatCurrency } from '../../utils/format';
 import { Bill } from '../../types/billing.types';
 import dayjs from 'dayjs';
+import { Ionicons } from '@expo/vector-icons';
 
 interface BillCardProps {
   bill: Bill;
@@ -13,14 +14,18 @@ interface BillCardProps {
 export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'COMPLETED': return theme.colors.success;
+      case 'PROCESSING': return theme.colors.warning;
+      case 'FAILED': return theme.colors.error;
       case 'PAID': return theme.colors.success;
       case 'PENDING': return theme.colors.warning;
-      case 'OVERDUE': return theme.colors.error;
       default: return theme.colors.textSecondary;
     }
   };
 
   const status = bill.status || 'PAID'; 
+  const customerNameValue = bill.customer?.name || (bill as any).customerName;
+  const isWalkIn = !customerNameValue || customerNameValue.toLowerCase().includes('walk-in');
 
   return (
     <TouchableOpacity 
@@ -31,13 +36,17 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
       <View style={styles.cardHeader}>
         <View style={styles.customerSection}>
           <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>
-              {(bill.customer?.name || 'W').charAt(0).toUpperCase()}
-            </Text>
+            {!isWalkIn && customerNameValue ? (
+              <Text style={styles.avatarText}>
+                {customerNameValue.charAt(0).toUpperCase()}
+              </Text>
+            ) : (
+              <Ionicons name="person" size={20} color={theme.colors.primary} />
+            )}
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.customerName} numberOfLines={1}>
-              {bill.customer?.name || 'Walk-in Customer'}
+              {customerNameValue || 'Walk-in Customer'}
             </Text>
             <Text style={styles.billId}>#{bill.billNumber}</Text>
           </View>
@@ -56,7 +65,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
       <View style={styles.footer}>
         <View>
           <Text style={styles.dateLabel}>Invoice Date</Text>
-          <Text style={styles.dateValue}>{dayjs(bill.createdAt).format('DD MMM, YYYY')}</Text>
+          <Text style={styles.dateValue}>{dayjs(bill.createdAt).format('DD MMM, YYYY • hh:mm A')}</Text>
         </View>
         <View style={styles.amountSection}>
           <Text style={styles.amountLabel}>Total Amount</Text>

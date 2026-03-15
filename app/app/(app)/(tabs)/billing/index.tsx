@@ -28,14 +28,57 @@ import { billingApi } from '../../../../src/api/billing.api';
 import { BillCard } from '../../../../src/components/billing/BillCard';
 import { AppHeader } from '../../../../src/components/common/AppHeader';
 import { formatDate } from '../../../../src/utils/format';
+import dayjs from 'dayjs';
 
-const FILTERS = ['All', 'Paid', 'Pending'];
+const STATUS_FILTERS = ['All', 'Completed', 'Processing', 'Failed'];
+const PERIOD_FILTERS = ['All', 'Today', 'Yesterday', 'This Week', 'This Month', 'Custom'];
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const YEARS = [2024, 2025, 2026, 2027];
+const DAYS = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
 
 export default function BillingScreen() {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedPeriod, setSelectedPeriod] = useState('All');
+  const [customRange, setCustomRange] = useState<{ startDate?: string; endDate?: string }>({});
+  const [isCustomModalVisible, setIsCustomModalVisible] = useState(false);
+
+  const [customFilterType, setCustomFilterType] = useState<'Date' | 'Month' | 'Year'>('Month');
+  const [customDay, setCustomDay] = useState(dayjs().format('DD'));
+  const [customMonth, setCustomMonth] = useState((dayjs().month() + 1).toString().padStart(2, '0')); // '01'-'12'
+  const [customYear, setCustomYear] = useState(dayjs().year().toString());
   
+  const getPeriodDates = (period: string) => {
+    if (period === 'Custom') return customRange;
+    if (period === 'All') return { startDate: undefined, endDate: undefined };
+    
+    const now = dayjs();
+    let startDate = now.startOf('day');
+    let endDate = now.endOf('day');
+
+    switch (period) {
+      case 'Today':
+        startDate = now.startOf('day');
+        endDate = now.endOf('day');
+        break;
+      case 'Yesterday':
+        startDate = now.subtract(1, 'day').startOf('day');
+        endDate = now.subtract(1, 'day').endOf('day');
+        break;
+      case 'This Week':
+        startDate = now.startOf('week');
+        endDate = now.endOf('week');
+        break;
+      case 'This Month':
+        startDate = now.startOf('month');
+        endDate = now.endOf('month');
+        break;
+    }
+    return { startDate: startDate.format('YYYY-MM-DDTHH:mm:ss.SSSZ'), endDate: endDate.format('YYYY-MM-DDTHH:mm:ss.SSSZ') };
+  };
+
   const { 
     items, 
     discount, 
@@ -55,15 +98,42 @@ export default function BillingScreen() {
     refetch,
     isRefetching 
   } = useQuery({
-    queryKey: ['bills', selectedFilter],
-    queryFn: () => billingApi.getBills(
-      1, 
-      50, 
-      undefined, 
-      undefined, 
-      selectedFilter === 'All' ? undefined : selectedFilter.toUpperCase()
-    ),
+    queryKey: ['bills', selectedStatus, selectedPeriod, customRange],
+    queryFn: () => {
+      const { startDate, endDate } = getPeriodDates(selectedPeriod);
+      return billingApi.getBills(
+        1, 
+        50, 
+        startDate, 
+        endDate, 
+        selectedStatus === 'All' ? undefined : selectedStatus.toUpperCase()
+      );
+    },
   });
+
+  const handleApplyCustomFilter = () => {
+    let startDate, endDate;
+    if (customFilterType === 'Date') {
+      const selected = dayjs(`${customYear}-${customMonth}-${customDay}`);
+      startDate = selected.startOf('day');
+      endDate = selected.endOf('day');
+    } else if (customFilterType === 'Month') {
+      const selected = dayjs(`${customYear}-${customMonth}-01`);
+      startDate = selected.startOf('month');
+      endDate = selected.endOf('month');
+    } else {
+      const selected = dayjs(`${customYear}-01-01`);
+      startDate = selected.startOf('year');
+      endDate = selected.endOf('year');
+    }
+
+    setCustomRange({
+      startDate: startDate.format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      endDate: endDate.format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+    });
+    setSelectedPeriod('Custom');
+    setIsCustomModalVisible(false);
+  };
 
   const handleProductSelect = (product: ProductSearchResult) => {
     addItem({
@@ -111,9 +181,9 @@ export default function BillingScreen() {
           </View>
           <View>
             <Text style={styles.statsValue}>
-              {billsData?.data?.filter((b: any) => b.status === 'PAID')?.length || 0}
+              {billsData?.data?.filter((b: any) => b.status === 'COMPLETED')?.length || 0}
             </Text>
-            <Text style={styles.statsLabel}>Paid Bills</Text>
+            <Text style={styles.statsLabel}>Completed Bills</Text>
           </View>
         </View>
       </View>
@@ -124,8 +194,8 @@ export default function BillingScreen() {
           showsHorizontalScrollIndicator={false} 
           contentContainerStyle={styles.filterContent}
         >
-          {FILTERS.map((filter) => {
-            const isActive = selectedFilter === filter;
+          {STATUS_FILTERS.map((filter) => {
+            const isActive = selectedStatus === filter;
             return (
               <TouchableOpacity
                 key={filter}
@@ -133,7 +203,42 @@ export default function BillingScreen() {
                   styles.filterPill,
                   isActive ? styles.activeFilterPill : styles.inactiveFilterPill
                 ]}
-                onPress={() => setSelectedFilter(filter)}
+                onPress={() => setSelectedStatus(filter)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.filterText,
+                  isActive ? styles.activeFilterText : styles.inactiveFilterText
+                ]}>
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={[styles.filterContent, { marginTop: 8 }]}
+        >
+          {PERIOD_FILTERS.map((filter) => {
+            const isActive = selectedPeriod === filter;
+            return (
+              <TouchableOpacity
+                key={filter}
+                style={[
+                  styles.filterPill,
+                  isActive ? styles.activeFilterPill : styles.inactiveFilterPill
+                ]}
+                onPress={() => {
+                  if (filter === 'Custom') {
+                    setIsCustomModalVisible(true);
+                  } else {
+                    setSelectedPeriod(filter);
+                    setCustomRange({});
+                  }
+                }}
                 activeOpacity={0.7}
               >
                 <Text style={[
@@ -175,6 +280,169 @@ export default function BillingScreen() {
           />
         }
       />
+
+      {/* Custom Filter Modal */}
+      <Modal
+        visible={isCustomModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsCustomModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Custom Period</Text>
+              <TouchableOpacity onPress={() => setIsCustomModalVisible(false)}>
+                <Ionicons name="close" size={24} color={theme.colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <View style={styles.customFilterTypeRow}>
+                {['Date', 'Month', 'Year'].map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    style={[
+                      styles.typePill,
+                      customFilterType === type && styles.activeTypePill
+                    ]}
+                    onPress={() => setCustomFilterType(type as any)}
+                  >
+                    <Text style={[
+                      styles.typeText,
+                      customFilterType === type && styles.activeTypeText
+                    ]}>{type}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {customFilterType === 'Date' && (
+                <View style={styles.pickerSection}>
+                  <Text style={styles.pickerLabel}>Day</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollListContent}>
+                    {DAYS.map((d) => {
+                      const isActive = customDay === d;
+                      return (
+                        <TouchableOpacity
+                          key={d}
+                          style={[styles.scrollItem, isActive && styles.activeScrollItem]}
+                          onPress={() => setCustomDay(d)}
+                        >
+                          <Text style={[styles.scrollItemText, isActive && styles.activeScrollItemText]}>{d}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+
+                  <Text style={[styles.pickerLabel, { marginTop: 12 }]}>Month</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollListContent}>
+                    {MONTHS.map((m, index) => {
+                      const value = (index + 1).toString().padStart(2, '0');
+                      const isActive = customMonth === value;
+                      return (
+                        <TouchableOpacity
+                          key={m}
+                          style={[styles.scrollItem, isActive && styles.activeScrollItem]}
+                          onPress={() => setCustomMonth(value)}
+                        >
+                          <Text style={[styles.scrollItemText, isActive && styles.activeScrollItemText]}>{m}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+
+                  <Text style={[styles.pickerLabel, { marginTop: 12 }]}>Year</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollListContent}>
+                    {YEARS.map((y) => {
+                      const isActive = customYear === y.toString();
+                      return (
+                        <TouchableOpacity
+                          key={y}
+                          style={[styles.scrollItem, isActive && styles.activeScrollItem]}
+                          onPress={() => setCustomYear(y.toString())}
+                        >
+                          <Text style={[styles.scrollItemText, isActive && styles.activeScrollItemText]}>{y}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+
+              {customFilterType === 'Month' && (
+                <View style={styles.pickerSection}>
+                  <Text style={styles.pickerLabel}>Month</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollListContent}>
+                    {MONTHS.map((m, index) => {
+                      const value = (index + 1).toString().padStart(2, '0');
+                      const isActive = customMonth === value;
+                      return (
+                        <TouchableOpacity
+                          key={m}
+                          style={[styles.scrollItem, isActive && styles.activeScrollItem]}
+                          onPress={() => setCustomMonth(value)}
+                        >
+                          <Text style={[styles.scrollItemText, isActive && styles.activeScrollItemText]}>{m}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+
+                  <Text style={[styles.pickerLabel, { marginTop: 12 }]}>Year</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollListContent}>
+                    {YEARS.map((y) => {
+                      const isActive = customYear === y.toString();
+                      return (
+                        <TouchableOpacity
+                          key={y}
+                          style={[styles.scrollItem, isActive && styles.activeScrollItem]}
+                          onPress={() => setCustomYear(y.toString())}
+                        >
+                          <Text style={[styles.scrollItemText, isActive && styles.activeScrollItemText]}>{y}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+
+              {customFilterType === 'Year' && (
+                <View style={styles.pickerSection}>
+                  <Text style={styles.pickerLabel}>Year</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollListContent}>
+                    {YEARS.map((y) => {
+                      const isActive = customYear === y.toString();
+                      return (
+                        <TouchableOpacity
+                          key={y}
+                          style={[styles.scrollItem, isActive && styles.activeScrollItem]}
+                          onPress={() => setCustomYear(y.toString())}
+                        >
+                          <Text style={[styles.scrollItemText, isActive && styles.activeScrollItemText]}>{y}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+
+              <View style={styles.modalActions}>
+                <AppButton
+                  title="Cancel"
+                  variant="outline"
+                  onPress={() => setIsCustomModalVisible(false)}
+                  style={styles.modalBtn}
+                />
+                <AppButton
+                  title="Apply"
+                  onPress={handleApplyCustomFilter}
+                  style={styles.modalBtn}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 
@@ -414,6 +682,75 @@ const styles = StyleSheet.create({
   },
   modalBtn: {
     flex: 1,
+  },
+  customFilterTypeRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  typePill: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTypePill: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  typeText: {
+    fontSize: 13,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textSecondary,
+  },
+  activeTypeText: {
+    color: '#fff',
+  },
+  pickerSection: {
+    marginBottom: 24,
+    gap: 12,
+  },
+  pickerLabel: {
+    fontSize: 12,
+    fontFamily: theme.font.bodySemiBold,
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+  },
+  scrollListContent: {
+    gap: 8,
+  },
+  scrollItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bg,
+  },
+  activeScrollItem: {
+    backgroundColor: theme.colors.primaryLight,
+    borderColor: theme.colors.primary,
+  },
+  scrollItemText: {
+    fontSize: 13,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textPrimary,
+  },
+  activeScrollItemText: {
+    color: theme.colors.primary,
+  },
+  datePickerSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+    gap: 12,
+  },
+  dateText: {
+    fontSize: 15,
+    fontFamily: theme.font.bodyMedium,
+    color: theme.colors.textPrimary,
   },
 });
 
