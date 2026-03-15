@@ -8,7 +8,9 @@
     "userInterfaceStyle": "light",
     "scheme": "ramadhani-car-accessories-and-autocare",
     "splash": {
-      "backgroundColor": "#E23744"
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#D97706"
     },
     "ios": {
       "bundleIdentifier": "com.ramadhani.caraccessoriesandautocare.admin",

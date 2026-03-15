@@ -81,10 +81,9 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
         <View style={styles.topSection}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>CS</Text>
+            <Image source={require('../../assets/icon.png')} style={styles.logoImage} />
           </View>
-          <Text style={styles.appName}>CarStock Admin</Text>
-          <Text style={styles.tagline}>Car Accessories Management</Text>
+          <Text style={styles.appName}>Ramadhani Car Accessories and Autocare</Text>
         </View>
 
         <Animated.View style={[styles.bottomSection, animatedStyle]}>
@@ -159,7 +158,7 @@ function createStyles(theme: any) {
   return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C1917', // Preserved dark header background
+    backgroundColor: '#1C1917',
   },
   scrollContent: {
     flexGrow: 1,
@@ -179,22 +178,18 @@ function createStyles(theme: any) {
     marginBottom: theme.spacing.md,
     ...theme.shadow.lg,
   },
-  logoText: {
-    color: '#FFFFFF', // White text on dark BG
-    fontSize: 32,
-    fontFamily: theme.font.heading,
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
   },
   appName: {
     color: '#FFFFFF',
     fontSize: 28,
     fontFamily: theme.font.heading,
     letterSpacing: -0.5,
-  },
-  tagline: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    fontFamily: theme.font.body,
-    marginTop: theme.spacing.xs,
+    textAlign: 'center',
+    paddingHorizontal: theme.spacing.md,
   },
   bottomSection: {
     flex: 1,
