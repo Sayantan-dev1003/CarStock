@@ -1,5 +1,18 @@
 export type PaymentMode = 'CASH' | 'UPI' | 'CARD';
-export type BillStatus = 'PAID' | 'PENDING';
+export type BillStatus = 'PROCESSING' | 'COMPLETED' | 'FAILED';
+export type BillProcessingStatus = 'IDLE' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+export interface BillResult {
+  billId: string;
+  billNumber: string;
+  total: number;
+  customerName: string;
+  paymentMode: string;
+  pdfUrl: string | null;
+  emailSent: boolean;
+  whatsappSent: boolean;
+  status: BillStatus;
+}
 
 export interface BillItem {
   productId: string;

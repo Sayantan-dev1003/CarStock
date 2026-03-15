@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -15,8 +15,8 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../../src/constants/theme';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { AppHeader } from '../../../src/components/common/AppHeader';
-import { billingApi } from '../../../src/api/billing.api';
 import { useBillingStore } from '../../../src/store/billing.store';
+import { useBillCreation } from '../../../src/hooks/useBillCreation';
 import { formatCurrency } from '../../../src/utils/format';
 import { PaymentMode, CreateBillPayload } from '../../../src/types/billing.types';
 
@@ -34,42 +34,40 @@ export default function PaymentScreen() {
         clearBill,
     } = useBillingStore();
 
-    const [loading, setLoading] = useState(false);
+    const { createBill, status, result, error, reset } = useBillCreation();
     const total = getTotal();
+
+    useEffect(() => {
+        if (status === 'COMPLETED' && result) {
+            router.replace({
+                pathname: '/(app)/billing/bill-success',
+                params: { bill: JSON.stringify(result) },
+            });
+            clearBill();
+        } else if (status === 'FAILED' && error) {
+            Alert.alert('Error', error);
+            if (error.toLowerCase().includes('stock')) {
+                router.back();
+            }
+        }
+    }, [status, result, error]);
 
     const handleConfirm = async () => {
         if (!paymentMode || !customerId) return;
 
-        setLoading(true);
-        try {
-            const payload: CreateBillPayload = {
-                customerId,
-                items: items.map((item) => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                })),
-                paymentMode,
-                discount,
-                vehicleId: vehicleId || undefined,
-            };
+        const payload: CreateBillPayload = {
+            customerId,
+            items: items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+            })),
+            paymentMode,
+            discount,
+            vehicleId: vehicleId || undefined,
+        };
 
-            const bill = await billingApi.createBill(payload);
-            router.replace({
-                pathname: '/(app)/billing/bill-success',
-                params: { bill: JSON.stringify(bill) },
-            });
-        } catch (error: any) {
-            console.error('Create bill error:', error);
-            const message = error.response?.data?.message || 'Failed to create bill';
-            Alert.alert('Error', message);
-
-            if (message.toLowerCase().includes('stock')) {
-                router.back();
-            }
-        } finally {
-            setLoading(false);
-        }
+        await createBill(payload);
     };
 
     const renderPaymentCard = (mode: PaymentMode, icon: string, label: string) => {
@@ -148,7 +146,7 @@ export default function PaymentScreen() {
                         title={`Confirm & Generate Bill • ${formatCurrency(total)}`}
                         onPress={handleConfirm}
                         disabled={!paymentMode}
-                        loading={loading}
+                        loading={status === 'PROCESSING'}
                         size="lg"
                         style={styles.confirmBtn}
                         rightIcon="arrow-forward"
@@ -160,10 +158,11 @@ export default function PaymentScreen() {
                 </View>
             </ScrollView>
 
-            {loading && (
+            {status === 'PROCESSING' && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="large" color="white" />
-                    <Text style={styles.loadingText}>Processing Transaction...</Text>
+                    <Text style={styles.loadingText}>Finalizing Bill...</Text>
+                    <Text style={styles.subLoadingText}>Generating PDF & Sending Invoice</Text>
                 </View>
             )}
         </View>
@@ -315,5 +314,11 @@ const styles = StyleSheet.create({
         marginTop: 16,
         fontSize: 16,
         fontFamily: theme.font.bodySemiBold,
+    },
+    subLoadingText: {
+        color: 'rgba(255, 255, 255, 0.7)',
+        marginTop: 8,
+        fontSize: 13,
+        fontFamily: theme.font.body,
     },
 });

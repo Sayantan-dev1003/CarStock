@@ -103,10 +103,10 @@ export default function BillSuccessScreen() {
         <Animated.View style={[styles.card, animatedContentStyle]}>
           <View style={styles.cardHeader}>
             <View style={[styles.avatar, { backgroundColor: theme.colors.primaryLight }]}>
-              <Text style={styles.avatarText}>{(billData.customer?.name || 'C').charAt(0).toUpperCase()}</Text>
+              <Text style={styles.avatarText}>{(billData.customer?.name || billData.customerName || 'C').charAt(0).toUpperCase()}</Text>
             </View>
             <View>
-              <Text style={styles.customerName}>{billData.customer?.name || 'Walk-in Customer'}</Text>
+              <Text style={styles.customerName}>{billData.customer?.name || billData.customerName || 'Walk-in Customer'}</Text>
               <Text style={styles.paymentModeText}>{billData.paymentMode} Payment</Text>
             </View>
             <View style={styles.amountContainer}>

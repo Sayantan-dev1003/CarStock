@@ -111,7 +111,7 @@ All operations—billing, inventory deduction, customer tracking, and automated 
 - **Automated Servicing**: Powers the predictive algorithms for future maintenance needs.
 
 ### 📧 Communication Engine
-- **Email via SendGrid**: High deliverability routing for PDF invoices, service reminders, and critical admin system alerts.
+- **Email via Resend**: High deliverability routing for PDF invoices, service reminders, and critical admin system alerts.
 - **WhatsApp via Twilio**: Direct-to-consumer messaging utilizing pre-approved Meta WhatsApp Business templates.
 - **Massively Asynchronous**: All dispatches are queued. The core API responds in < 200ms, pushing out the heavy network operations to worker threads.
 - **Smart Retry Protocol**: Built-in exponential backoff protecting against temporary external API failures.
@@ -176,7 +176,7 @@ All operations—billing, inventory deduction, customer tracking, and automated 
 | **@nestjs/schedule** | ^6.1.0 | Chronological task orchestration for recurring analytics and reminder crons. |
 | **Firebase Admin SDK**| ^13.0.0 | Server-side gateway to push massive notification payloads directly to FCM logic. |
 | **Twilio SDK** | ^5.12.0 | Simple, wrapped REST executions pointing toward the WhatsApp Business APIs. |
-| **SendGrid** | ^8.1.0 | Massive transactional email API ensuring high inbox deliverability. |
+| **Resend** | ^6.9.3 | Massive transactional email API ensuring high inbox deliverability. |
 | **Cloudinary SDK** | ^2.9.0 | Digital Asset Management uploading our PDF shards into high-availability CDNs. |
 
 ### Database & Infrastructure Architecture
@@ -192,7 +192,7 @@ All operations—billing, inventory deduction, customer tracking, and automated 
 ### Why these Core Choices?
 - **Why NestJS over Express?**: Express requires cobbling together dozens of random middleware. NestJS enforces a brilliant, Angular-inspired, highly testable modular architecture perfect for enterprise growth out-of-the-box.
 - **Why PostgreSQL over MongoDB?**: *CAP Theorem decision.* We are running a financial billing system where consistency (C) is radically more important than hyper-availability (A). We need strict Relational Schema, ACID constraints, and atomic row-locks to mathematically guarantee we never oversell a piece of inventory. Document stores are fundamentally dangerous for concurrent ledger tracking.
-- **Why Bull Queue for Deliveries?**: If an admin bills a customer, the API must respond immediately so the admin can move to the next customer. Rendering a massive PDF, uploading it, querying Twilio, and hitting SendGrid takes ~4 seconds. We offload this 4 seconds to a background Redis worker using Bull to keep the main event loop lightning fast.
+- **Why Bull Queue for Deliveries?**: If an admin bills a customer, the API must respond immediately so the admin can move to the next customer. Rendering a massive PDF, uploading it, querying Twilio, and hitting Resend takes ~4 seconds. We offload this 4 seconds to a background Redis worker using Bull to keep the main event loop lightning fast.
 - **Why Cloudinary over AWS S3?**: Cloudinary offers a highly developer-friendly image/PDF CDN solution out of the box with zero complex IAM configurations, immediate asset optimizations, and built-in remote webhooks perfectly suiting our startup velocity.
 
 ---
@@ -219,12 +219,12 @@ All operations—billing, inventory deduction, customer tracking, and automated 
        │  └────────────┘   └────────────┘   └────────────────┘  │
        │                                                        │
        └─────┬──────────────────┬───────────────────┬───────────┘
-             │                  │                   │
-             │                  │                   │ HTTPS
+             │                  ↕                   │
+             │           Pub/Sub & Bull             │ HTTPS
              │                  │                   │
        ┌─────▼──────┐    ┌──────▼───────┐    ┌──────▼───────┐
        │ PostgreSQL │    │   Redis 7    │    │  Cloudinary  │
-       │ (Database) │    │ (Bull Queue) │    │  (Asset CDN) │
+       │ (Database) │    │ (Bull & Pub) │    │  (Asset CDN) │
        └────────────┘    └──────┬───────┘    └──────────────┘
                                 │
                          ┌──────▼────────┐
@@ -275,9 +275,12 @@ Admin taps [Confirm Payment] on Mobile
   │
   ├─► [PDF Engine] Puppeteer loads CSS/HTML template, injects data, generates binary PDF
   ├─► [CDN] Axios uploades binary PDF to Cloudinary, receives secure URL
-  ├─► [Email] Nodemailer + SendGrid API called with Template + URL
+  ├─► [Email] Resend API called with Template + URL
   ├─► [WhatsApp] Twilio API called strictly firing approved Business MSG templates
-  └─► [Push] FCM admin pings Admin's device: "Bill 14002 Dispatched"
+  ├─► [Push] FCM admin pings Admin's device: "Bill 14002 Dispatched"
+  │
+  ├─► [Redis Pub/Sub] Worker publishes `bill.completed` with payload
+  └─► [Socket.io Gateway] Subscribes to Redis, emits `bill:updated` to Client Room
 ```
 
 ### 7.3 Architecture Explanation
@@ -286,7 +289,10 @@ Admin taps [Confirm Payment] on Mobile
 During a busy Saturday, multiple checkout counters might attempt to sell the final singular unit of an expensive amplifier simultaneously. By wrapping the entire logic within a strict `Prisma.$transaction()`, PostgreSQL places a write-lock on those specific rows. If Admin A successfully takes the amplifier, Admin B's concurrent transaction query mathematically fails the validation bounds check. Admin B's transaction completely rolls back, ensuring absolute stock integrity.
 
 **Why delivery is asynchronous (Bull queue):**
-Network operations (AWS/Cloudinary uploads, SendGrid, Twilio invocations) can often take wildly varying amounts of time depending on global internet latency (ranging from 500ms to 6,000ms). If we forced the checkout admin to hold a loading spinner while the API synchronously compiled templates and phoned out to third-party endpoints, the application would feel highly sluggish and buggy. Bull Queue accepts the job request instantly into Redis RAM and processes it quietly while the admin is free to ring up the next customer.
+Network operations (Cloudinary uploads, Resend, Twilio invocations) can often take wildly varying amounts of time depending on global internet latency (ranging from 500ms to 6,000ms). If we forced the checkout admin to hold a loading spinner while the API synchronously compiled templates and phoned out to third-party endpoints, the application would feel highly sluggish and buggy. Bull Queue accepts the job request instantly into Redis RAM and processes it quietly while the admin is free to ring up the next customer.
+
+**Why Redis Pub/Sub for WebSockets:**
+Background workers (Bull Queue) execute outside the scope of the WebSocket gateway instance. Standard internal memory pushes wouldn't reach clients if the socket was connected to a different server pod/instance. By utilizing **Redis Pub/Sub**, background workers publish completion states (`bill.completed`), which the `BillsGateway` listens for and routes down the correct node room, enabling robust real-time updates for asynchronous workflows at scale.
 
 **Why Socket.io for Real-time:**
 When Admin A sells an item, Admin B's screen should visually reflect that updated inventory count immediately without requiring a manual refresh. Polling the database every 5 seconds drains mobile battery and crushes server DB query limits. WebSockets maintain a very lightweight, persistent bi-directional connection, pinging the mobile client perfectly the millisecond an item changes in postgres bounds.
@@ -459,14 +465,14 @@ npx expo start --clear
 | `PORT` | Yes | Dedicated server running port | `3000` |
 | `NODE_ENV` | Yes | Defines app strictness mode | `development` / `production` |
 | `DATABASE_URL` | Yes | Prisma connection string targeting Postgres | `postgresql://user:pass@localhost:5432/car` |
-| `REDIS_HOST` | Yes | Bull queue targeting host | `localhost` |
-| `REDIS_PORT` | Yes | Bull queue target port | `6379` |
+| `REDIS_HOST` | Yes | Redis host for Bull & Pub/Sub | `localhost` |
+| `REDIS_PORT` | Yes | Redis port for Bull & Pub/Sub | `6379` |
 | `JWT_SECRET` | Yes | Massive entropy key parsing access tokens | `your_complex_secret` |
 | `JWT_EXPIRES_IN` | Yes | Strict string evaluating time constraint | `15m` |
 | `JWT_REFRESH_SECRET` | Yes | Independent entropy key | `your_refresh_secret` |
 | `JWT_REFRESH_EXPIRES_IN` | Yes | Strict life span parsing | `7d` |
-| `SENDGRID_API_KEY` | Yes | Cloud SMTP routing keys | `SG.xxxxx.yyyyy` |
-| `SENDGRID_FROM_EMAIL` | Yes | Verified root-domain dispatch email | `billing@carstock.com` |
+| `RESEND_API_KEY` | Yes | Cloud API Keys for Emails | `re_xxxxx` |
+| `RESEND_FROM_EMAIL`| Yes | Verified dispatch email (Optional) | `billing@carstock.com` |
 | `TWILIO_ACCOUNT_SID` | Yes | Console identifier | `ACxxxxxxxxxxxx` |
 | `TWILIO_AUTH_TOKEN` | Yes | Twilio REST execution auth | `xxxxxxxxxx` |
 | `TWILIO_WHATSAPP_NUMBER`| Yes | Linked Meta Business Account | `whatsapp:+14155238886` |
@@ -576,7 +582,7 @@ Running business-critical financial software architecture introduces profound so
 
 ### Challenge 2: Email Deliverability
 **Problem:** Generic SMTP configs constantly push critical digital PDFs directly directly into customer Spam/Junk mapping logic.
-**Solution:** We heavily isolated our routing specifically through **SendGrid**, completely configuring root level DKIM/SPF DNS records directly matching standard domains.
+**Solution:** We heavily isolated our routing specifically through **Resend**, completely configuring root level DKIM/SPF DNS records directly matching standard domains.
 **Result:** Nearly 99+ % inbox rate for digital attachments.
 
 ### Challenge 3: Offline Usage During Billing
@@ -604,6 +610,11 @@ Running business-critical financial software architecture introduces profound so
 **Solution:** Shifted every PDF structural creation entirely onto asynchronous Bull/Redis worker components utterly detaching it structurally from the request/response HTTPS loop.
 **Result:** Render speeds do not affect user experiences, meaning infinite bills generate quietly within the queue seamlessly.
 
+### Challenge 8: Real-Time States in Async Jobs
+**Problem:** Triggering WebSocket events from background workers (Bull Queue) fails in distributed architectures because the worker lives on a separate thread/instance than the client interface gateway.
+**Solution:** Custom **Redis Pub/Sub** service setup. Workers publish `bill.completed` messages upon success; the `BillsGateway` subscribes dynamically to route the live update payloads back inside node-room triggers.
+**Result (Trade-off):** Slightly increased logic complexity managing redundant subscriber reconnects, but unlocks horizontal WebSocket broadcasting critical for live order tracking.
+
 ---
 
 ## ⚖️ 15. TRADE-OFFS
@@ -616,7 +627,7 @@ Every complex engineering system balances logic decisions.
 | **Database** | **PostgreSQL** | MongoDB | Complex ledger operations (inventory math) necessitate ACID transactions; a NoSQL system provides incredibly unsafe financial overlap matrices. |
 | **Mobile Tech** | **Expo** | Bare React Native | Expo abstract workflows generate native iOS/Android packages heavily reducing C++ / Swift compilation configuration chaos. |
 | **PDF Rendering** | **Server-side (Puppeteer)** | Client-side (RN PDF) | Generating PDFs correctly via complex dynamic UI elements natively on diverse android devices is notoriously chaotic. Server HTML rendering ensures strict perfection. |
-| **Workflow Timing**| **Asynchronous Job Queue** | Synchronous HTTPS | Waiting for external APIs (SendGrid/Twilio/AWS) to resolve synchronously causes the UI to hang for 3-5 seconds on every sale. |
+| **Workflow Timing**| **Asynchronous Job Queue** | Synchronous HTTPS | Waiting for external APIs (Resend/Twilio/Cloudinary) to resolve synchronously causes the UI to hang for 3-5 seconds on every sale. |
 | **Live Sync**| **Socket.io** | Re-polling HTTP | Emitting Websockets heavily reduces server database iteration hits vs having thousands of mobile devices spam HTTP GET rules simultaneously. |
 | **Adding Items** | **Manual Intelligent Search**| Native Barcode Scanner | We discovered most auto shop items do not have perfectly clean, global UPC variants. Manual heavy debounced search works universally flawlessly heavily across environments. |
 | **Image CDN** | **Cloudinary** | AWS S3 Bucket | S3 configuration requires infinite IAM role provisioning. Cloudinary operates cleanly specifically for PDF endpoint uploads with immediate optimization out constraints globally. |

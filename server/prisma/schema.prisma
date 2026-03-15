@@ -21,6 +21,12 @@ model Admin {
   updatedAt    DateTime @updatedAt
 }
 
+enum BillStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model Product {
   id             String      @id @default(uuid())
   name           String
@@ -77,11 +83,12 @@ model Bill {
   sgst          Float
   total         Float
   paymentMode   String     // CASH, UPI, CARD
-  status        String     @default("PAID") // PAID, PENDING
+  status        BillStatus @default(PROCESSING)
   pdfUrl        String?
   emailSent     Boolean    @default(false)
   whatsappSent  Boolean    @default(false)
   createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model BillItem {

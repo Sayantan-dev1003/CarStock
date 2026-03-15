@@ -6,8 +6,8 @@ import { InventoryGateway } from '../gateways/inventory.gateway';
 import { InventoryService } from '../inventory/inventory.service';
 import { CreateBillDto } from './dto/create-bill.dto';
 import { BillItemDto } from './dto/bill-item.dto';
-import { Prisma, Product } from '@prisma/client';
-import { BILL_DELIVERY_QUEUE, JOB_DELIVER_BILL } from '../queues/queue.constants';
+import { Prisma, Product, BillStatus } from '@prisma/client';
+import { BILL_DELIVERY_QUEUE, JOB_DELIVER_BILL, BILL_PROCESSING_QUEUE, JOB_PROCESS_BILL } from '../queues/queue.constants';
 import { BillPdfService } from './bill-pdf.service';
 import { UploadService } from '../upload/upload.service';
 import { EmailService } from '../email/email.service';
@@ -105,7 +105,7 @@ export class BillingService {
             sgst: totals.sgst,
             total: totals.total,
             paymentMode: dto.paymentMode,
-            status: dto.status ?? 'PAID',
+            status: (dto.status as any) ?? BillStatus.PROCESSING,
             items: {
               create: dto.items.map((item) => ({
                 productId: item.productId,
@@ -169,123 +169,26 @@ export class BillingService {
       }
     }
 
-    this.inventoryGateway.emitBillCreated(bill.id, bill.billNumber, bill.customer.name, bill.total);
+    this.inventoryGateway.emitBillCreated(bill.id, bill.billNumber, (bill as any).customer.name, bill.total);
 
-    this.logger.log(`Bill ${bill.billNumber} created for customer ${bill.customer.name}, total: ${bill.total}`);
+    this.logger.log(`Bill ${bill.billNumber} created for customer ${(bill as any).customer.name}, total: ${bill.total}`);
 
-    // Step 1 — Generate PDF:
-    let pdfUrl: string | null = null;
-    let pdfBuffer: Buffer | null = null;
-
-    try {
-      pdfBuffer = await this.billPdfService.generate(bill);
-      this.logger.log('PDF generated for bill: ' + bill.billNumber);
-    } catch (error) {
-      this.logger.error('PDF generation failed: ' + error.message);
-    }
-
-    // Step 2 — Upload to Cloudinary:
-    if (pdfBuffer) {
-      try {
-        pdfUrl = await this.uploadService.uploadPdf(pdfBuffer, bill.billNumber);
-        this.logger.log('PDF uploaded to Cloudinary: ' + pdfUrl);
-        await this.prisma.bill.update({
-          where: { id: bill.id },
-          data: { pdfUrl },
-        });
-      } catch (error) {
-        this.logger.error('PDF upload failed: ' + error.message);
-      }
-    }
-
-    // Step 3 — Fetch customer and admin for delivery:
-    const customer = await this.prisma.customer.findUnique({ where: { id: bill.customerId } });
-    const admin = await this.prisma.admin.findFirst();
-
-    // Step 4 — Send email:
-    let emailSent = false;
-    if (customer && admin) {
-      try {
-        await this.emailService.sendBill({
-          toEmail: customer.email,
-          customerName: customer.name,
-          billNumber: bill.billNumber,
-          billDate: bill.createdAt.toISOString(),
-          shopName: admin.shopName,
-          items: bill.items.map((item) => ({
-            productName: item.product?.name ?? 'Product',
-            quantity: item.quantity,
-            unitPrice: Number(item.unitPrice),
-            total: Number(item.total),
-          })),
-          subtotal: Number(bill.subtotal),
-          discount: Number(bill.discount),
-          cgst: Number(bill.cgst),
-          sgst: Number(bill.sgst),
-          total: Number(bill.total),
-          paymentMode: bill.paymentMode,
-          pdfUrl: pdfUrl ?? '',
-        });
-        emailSent = true;
-        this.logger.log('Email sent for bill: ' + bill.billNumber);
-      } catch (error) {
-        this.logger.error('Email failed: ' + error.message);
-      }
-    }
-
-    // Step 5 — Send WhatsApp:
-    let whatsappSent = false;
-    if (customer) {
-      whatsappSent = await this.whatsappService.sendBill({
-        mobile: customer.mobile,
-        customerName: customer.name,
-        billNumber: bill.billNumber,
-        total: Number(bill.total),
-        shopName: admin?.shopName ?? 'CarStock',
-        pdfUrl: pdfUrl ?? '',
-      });
-      this.logger.log('WhatsApp sent for bill: ' + bill.billNumber + ' — ' + whatsappSent);
-    }
-
-    // Step 6 — Update bill with final delivery status:
-    await this.prisma.bill.update({
-      where: { id: bill.id },
-      data: {
-        emailSent,
-        whatsappSent,
-        pdfUrl: pdfUrl ?? undefined,
+    // Offload bill generation tasks to the queue (PDF, Email, WhatsApp)
+    await this.billQueue.add(
+      JOB_PROCESS_BILL,
+      { billId: bill.id },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
       },
-    });
-    
-    // Step 7 — Send Push Notification:
-    try {
-      await this.notificationsService.sendNewBillPush(
-        bill.billNumber,
-        customer?.name ?? 'Customer',
-        Number(bill.total),
-      );
-    } catch (error) {
-      this.logger.error('New bill push failed: ' + error.message);
-    }
-
-    // Step 8 — Return fresh bill with all updated fields:
-    const finalBill = await this.prisma.bill.findUnique({
-      where: { id: bill.id },
-      include: {
-        items: {
-          include: { product: true },
-        },
-        customer: true,
-      },
-    });
+    );
 
     return {
-      ...finalBill,
-      delivery: {
-        emailSent,
-        whatsappSent,
-        pdfUrl,
-      },
+      billId: bill.id,
+      billNumber: bill.billNumber,
+      status: 'PROCESSING',
     };
   }
 

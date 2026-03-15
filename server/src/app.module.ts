@@ -18,6 +18,7 @@ import { QueuesModule } from './queues/queues.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { RemindersModule } from './reminders/reminders.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { RemindersModule } from './reminders/reminders.module';
     UploadModule,
     EmailModule,
     WhatsAppModule,
+    RedisModule,
     BullModule.forRootAsync({
       useFactory: (config: ConfigService) => ({
         redis: {
