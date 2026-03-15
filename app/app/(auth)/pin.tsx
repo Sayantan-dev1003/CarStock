@@ -60,8 +60,16 @@ export default function PinScreen() {
   const handleBiometric = async () => {
     const success = await authenticate();
     if (success) {
-      setPinVerified(true);
-      router.replace('/(app)/(tabs)/dashboard');
+      if (flow === 'reset') {
+        setIsSettingUp(true);
+        setConfirmPin('');
+        setPin('');
+        setIsConfirming(false);
+        setStoredPin(null);
+      } else {
+        setPinVerified(true);
+        router.replace('/(app)/(tabs)/dashboard');
+      }
     }
   };
 
@@ -165,12 +173,12 @@ export default function PinScreen() {
         <Text style={styles.title}>
           {isSettingUp 
             ? (isConfirming ? 'Confirm Your PIN' : 'Set Up Your PIN') 
-            : 'Verify Your Identity'}
+            : (flow === 'reset' ? 'Enter Current PIN' : 'Verify Your Identity')}
         </Text>
         <Text style={styles.subtitle}>
           {isSettingUp 
             ? 'Create a 4-digit PIN for security' 
-            : 'Use biometric or PIN to continue'}
+            : (flow === 'reset' ? 'Verify your identity to change PIN' : 'Use biometric or PIN to continue')}
         </Text>
       </View>
 
