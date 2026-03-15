@@ -51,9 +51,10 @@ export default function AddEditProductScreen() {
             name: '',
             brand: '',
             category: 'OTHER',
+            costPrice: '',
             sellingPrice: '',
+            quantity: '',
             reorderLevel: '5',
-            description: '',
             imageUrl: '',
         },
     });
@@ -67,9 +68,10 @@ export default function AddEditProductScreen() {
                 name: product.name,
                 brand: product.brand || '',
                 category: product.category,
-                sellingPrice: product.sellingPrice.toString(),
-                reorderLevel: product.reorderLevel.toString(),
-                description: product.description || '',
+                costPrice: product.costPrice ? product.costPrice.toString() : '',
+                sellingPrice: product.sellingPrice ? product.sellingPrice.toString() : '',
+                quantity: product.quantity ? product.quantity.toString() : '0',
+                reorderLevel: product.reorderLevel ? product.reorderLevel.toString() : '5',
                 imageUrl: product.imageUrl || '',
             });
             if (product.imageUrl) {
@@ -141,8 +143,10 @@ export default function AddEditProductScreen() {
     const onSubmit = (data: any) => {
         const payload = {
             ...data,
-            sellingPrice: parseFloat(data.sellingPrice),
-            reorderLevel: parseInt(data.reorderLevel, 10),
+            costPrice: parseFloat(data.costPrice) || 0,
+            sellingPrice: parseFloat(data.sellingPrice) || 0,
+            quantity: parseInt(data.quantity, 10) || 0,
+            reorderLevel: parseInt(data.reorderLevel, 10) || 0,
         };
         mutation.mutate(payload);
     };
@@ -221,12 +225,14 @@ export default function AddEditProductScreen() {
                     <Controller
                         control={control}
                         name="brand"
+                        rules={{ required: 'Brand is required' }}
                         render={({ field: { onChange, value } }) => (
                             <AppInput
-                                label="Brand (Optional)"
+                                label="Brand"
                                 placeholder="manufacturer brand"
                                 value={value}
                                 onChangeText={onChange}
+                                error={errors.brand?.message}
                             />
                         )}
                     />
@@ -265,11 +271,28 @@ export default function AddEditProductScreen() {
                         <View style={{ flex: 1, marginRight: 12 }}>
                             <Controller
                                 control={control}
-                                name="sellingPrice"
-                                rules={{ required: 'Price is required' }}
+                                name="costPrice"
+                                rules={{ required: 'Cost Price is required' }}
                                 render={({ field: { onChange, value } }) => (
                                     <AppInput
-                                        label="Price (₹)"
+                                        label="Cost Price (₹)"
+                                        placeholder="0.00"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        keyboardType="numeric"
+                                        error={errors.costPrice?.message}
+                                    />
+                                )}
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Controller
+                                control={control}
+                                name="sellingPrice"
+                                rules={{ required: 'Selling Price is required' }}
+                                render={({ field: { onChange, value } }) => (
+                                    <AppInput
+                                        label="Selling Price (₹)"
                                         placeholder="0.00"
                                         value={value}
                                         onChangeText={onChange}
@@ -279,11 +302,31 @@ export default function AddEditProductScreen() {
                                 )}
                             />
                         </View>
+                    </View>
+
+                    <View style={styles.row}>
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                            <Controller
+                                control={control}
+                                name="quantity"
+                                rules={{ required: 'Quantity is required' }}
+                                render={({ field: { onChange, value } }) => (
+                                    <AppInput
+                                        label="Quantity"
+                                        placeholder="0"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        keyboardType="numeric"
+                                        error={errors.quantity?.message}
+                                    />
+                                )}
+                            />
+                        </View>
                         <View style={{ flex: 1 }}>
                             <Controller
                                 control={control}
                                 name="reorderLevel"
-                                rules={{ required: 'Required' }}
+                                rules={{ required: 'Reorder Level is required' }}
                                 render={({ field: { onChange, value } }) => (
                                     <AppInput
                                         label="Reorder Level"
@@ -299,24 +342,7 @@ export default function AddEditProductScreen() {
                     </View>
                 </View>
 
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Additional Notes</Text>
-                    <Controller
-                        control={control}
-                        name="description"
-                        render={({ field: { onChange, value } }) => (
-                            <AppInput
-                                label="Description"
-                                placeholder="internal notes or details..."
-                                value={value}
-                                onChangeText={onChange}
-                                multiline
-                                numberOfLines={4}
-                                containerStyle={{ height: 100 }}
-                            />
-                        )}
-                    />
-                </View>
+
 
                 <View style={styles.footer}>
                     <AppButton

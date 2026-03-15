@@ -40,7 +40,10 @@ export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
           </View>
 
           <TouchableOpacity style={styles.summaryRow} onPress={onDiscountPress}>
-            <Text style={styles.label}>Discount</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.label}>Discount</Text>
+              <MaterialCommunityIcons name="pencil-outline" size={16} color={theme.colors.primary} />
+            </View>
             <Text style={[styles.value, discount > 0 && styles.discountValue]}>
               - {formatCurrency(discount)}
             </Text>

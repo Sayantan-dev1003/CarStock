@@ -65,7 +65,7 @@ export default function InventoryScreen() {
     };
   }, [products]);
 
-  if (isLoading) return <LoadingSpinner />;
+
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
@@ -166,11 +166,15 @@ export default function InventoryScreen() {
             />
           }
           ListEmptyComponent={
-            <EmptyState
-              icon="cube-outline"
-              title="No products found"
-              subtitle="Try adjusting your filters or search query"
-            />
+            isLoading ? (
+              <LoadingSpinner message="Loading products..." />
+            ) : (
+              <EmptyState
+                icon="cube-outline"
+                title="No products found"
+                subtitle="Try adjusting your filters or search query"
+              />
+            )
           }
         />
       </View>

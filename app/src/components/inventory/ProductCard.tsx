@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { formatCurrency } from '../../utils/format';
@@ -30,12 +30,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       activeOpacity={0.7}
     >
       <View style={styles.imagePlaceholder}>
-        <Ionicons name="cube-outline" size={24} color={theme.colors.textMuted} />
+        {product.imageUrl ? (
+          <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
+        ) : (
+          <Ionicons name="cube-outline" size={24} color={theme.colors.textMuted} />
+        )}
       </View>
       
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.name} numberOfLines={1}>{product.name}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.name} numberOfLines={1}>{product.name}</Text>
+            {product.brand ? (
+              <Text style={styles.brand} numberOfLines={1}>{product.brand}</Text>
+            ) : null}
+          </View>
           <View style={styles.categoryTag}>
             <Text style={styles.categoryText}>{product.category}</Text>
           </View>
@@ -86,7 +95,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: theme.font.bodySemiBold,
     color: theme.colors.textPrimary,
-    flex: 1,
+  },
+  brand: {
+    fontSize: 12,
+    fontFamily: theme.font.body,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: theme.radius.sm,
+    resizeMode: 'cover',
   },
   categoryTag: {
     backgroundColor: theme.colors.primaryLight,

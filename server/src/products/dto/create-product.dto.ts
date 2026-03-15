@@ -41,10 +41,10 @@ export class CreateProductDto {
   @IsNotEmpty()
   category: string;
 
-  @ApiPropertyOptional({ example: 'Michelin', description: 'Brand name' })
+  @ApiProperty({ example: 'Michelin', description: 'Brand name' })
   @IsString()
-  @IsOptional()
-  brand?: string;
+  @IsNotEmpty()
+  brand: string;
 
   @ApiProperty({ example: 40, description: 'Current inventory quantity' })
   @IsInt()
