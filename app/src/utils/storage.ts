@@ -6,6 +6,7 @@ const KEYS = {
   PIN: 'adminPin',
   CAR_DATA_CACHE: 'carDataCache',
   CAR_DATA_TIMESTAMP: 'carDataTimestamp',
+  ADMIN_PROFILE: 'adminProfile',
 } as const;
 
 export const storage = {
@@ -24,6 +25,7 @@ export const storage = {
   async clearTokens(): Promise<void> {
     await AsyncStorage.removeItem(KEYS.ACCESS_TOKEN);
     await AsyncStorage.removeItem(KEYS.REFRESH_TOKEN);
+    await AsyncStorage.removeItem(KEYS.ADMIN_PROFILE);
   },
   async getPin(): Promise<string | null> {
     return AsyncStorage.getItem(KEYS.PIN);
@@ -45,6 +47,13 @@ export const storage = {
   async setCarData(data: Record<string, string[]>): Promise<void> {
     await AsyncStorage.setItem(KEYS.CAR_DATA_CACHE, JSON.stringify(data));
     await AsyncStorage.setItem(KEYS.CAR_DATA_TIMESTAMP, Date.now().toString());
+  },
+  async getAdminProfile(): Promise<any | null> { // Use AdminProfile type if imported, else any
+    const data = await AsyncStorage.getItem(KEYS.ADMIN_PROFILE);
+    return data ? JSON.parse(data) : null;
+  },
+  async setAdminProfile(admin: any): Promise<void> {
+    return AsyncStorage.setItem(KEYS.ADMIN_PROFILE, JSON.stringify(admin));
   },
   async isCarDataFresh(): Promise<boolean> {
     const timestamp = await AsyncStorage.getItem(KEYS.CAR_DATA_TIMESTAMP);

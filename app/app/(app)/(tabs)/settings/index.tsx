@@ -7,6 +7,7 @@ import {
   Switch, 
   TouchableOpacity, 
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -132,10 +133,14 @@ export default function SettingsScreen() {
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{getInitials(admin?.name || 'A')}</Text>
+            <Image 
+              source={require('../../../../assets/icon.png')} 
+              style={{ width: '100%', height: '100%' }} 
+              resizeMode="contain"
+            />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>Store Admin</Text>
+            <Text style={styles.userName}>{admin?.shopName || 'CarStock'}</Text>
             <Text style={styles.userRole}>{admin?.email || 'admin@carstock.com'}</Text>
           </View>
         </View>
@@ -176,7 +181,6 @@ export default function SettingsScreen() {
         </View>
 
         {/* Danger Zone Section */}
-        <Text style={styles.sectionHeader}>Danger Zone</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity style={styles.logoutItem} onPress={handleLogout} activeOpacity={0.7}>
             <View style={[styles.iconContainer, { backgroundColor: 'rgba(185, 28, 28, 0.05)' }]}>
@@ -228,6 +232,7 @@ function createStyles(theme: any) {
     marginRight: 16,
     borderWidth: 1,
     borderColor: 'rgba(217, 119, 6, 0.15)',
+    overflow: 'hidden',
   },
   avatarText: {
     fontSize: 24,

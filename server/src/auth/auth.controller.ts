@@ -22,6 +22,18 @@ interface TokenPair {
     refreshToken: string;
 }
 
+interface LoginResponse extends TokenPair {
+    admin: {
+        id: string;
+        email: string;
+        name: string;
+        shopName: string;
+        shopPhone?: string | null;
+        logoUrl?: string | null;
+        deviceToken?: string | null;
+    }
+}
+
 interface RefreshBody {
     refreshToken: string;
 }
@@ -41,7 +53,7 @@ export class AuthController {
     @Post('login')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Admin login — returns access & refresh tokens' })
-    login(@Body() dto: LoginDto): Promise<TokenPair> {
+    login(@Body() dto: LoginDto): Promise<LoginResponse> {
         return this.authService.login(dto);
     }
 

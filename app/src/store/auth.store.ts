@@ -7,7 +7,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isPinVerified: boolean;
   admin: AdminProfile | null;
-  setTokens: (access: string, refresh: string) => Promise<void>;
+  setTokens: (access: string, refresh: string, admin: AdminProfile) => Promise<void>;
   setAdmin: (admin: AdminProfile) => void;
   setPinVerified: (verified: boolean) => void;
   clearAuth: () => Promise<void>;
@@ -20,9 +20,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isPinVerified: false,
   admin: null,
 
-  setTokens: async (access, refresh) => {
+  setTokens: async (access, refresh, admin) => {
     await storage.setAccessToken(access);
     await storage.setRefreshToken(refresh);
+    if (admin) {
+      await storage.setAdminProfile(admin);
+      set({ admin });
+    }
     set({ accessToken: access, isAuthenticated: true });
     
     const bioEnabled = await storage.getBiometricsEnabled();
@@ -42,8 +46,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   loadStoredTokens: async () => {
     const token = await storage.getAccessToken();
+    const admin = await storage.getAdminProfile();
     if (token) {
-      set({ accessToken: token, isAuthenticated: true });
+      set({ accessToken: token, isAuthenticated: true, admin });
       
       const bioEnabled = await storage.getBiometricsEnabled();
       if (!bioEnabled) {

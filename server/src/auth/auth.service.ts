@@ -10,6 +10,18 @@ interface TokenPair {
     refreshToken: string;
 }
 
+interface LoginResponse extends TokenPair {
+    admin: {
+        id: string;
+        email: string;
+        name: string;
+        shopName: string;
+        shopPhone?: string | null;
+        logoUrl?: string | null;
+        deviceToken?: string | null;
+    }
+}
+
 @Injectable()
 export class AuthService {
     constructor(
@@ -19,7 +31,7 @@ export class AuthService {
     ) { }
 
     // ── Login ──────────────────────────────────────────────────────────────────
-    async login(dto: LoginDto): Promise<TokenPair> {
+    async login(dto: LoginDto): Promise<LoginResponse> {
         const admin = await this.prisma.admin.findUnique({
             where: { email: dto.email },
         });
@@ -35,7 +47,14 @@ export class AuthService {
 
         const tokens = await this.generateTokens(admin.id, admin.email);
         await this.saveRefreshToken(admin.id, tokens.refreshToken);
-        return tokens;
+        
+        // Exclude sensitive fields
+        const { password, refreshToken, createdAt, updatedAt, ...adminProfile } = admin;
+        
+        return { 
+            ...tokens, 
+            admin: adminProfile 
+        };
     }
 
     // ── Generate access + refresh token pair ───────────────────────────────────

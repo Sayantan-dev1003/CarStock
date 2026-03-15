@@ -6,6 +6,7 @@ export interface LoginCredentials {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  admin: AdminProfile;
 }
 
 export interface AdminProfile {

@@ -62,7 +62,7 @@ export default function LoginScreen() {
     setError(null);
     try {
       const response = await authApi.login(data);
-      setTokens(response.accessToken, response.refreshToken);
+      setTokens(response.accessToken, response.refreshToken, response.admin);
       router.replace('/(auth)/pin');
     } catch (err) {
       const msg = getErrorMessage(err);

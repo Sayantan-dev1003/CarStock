@@ -1,11 +1,17 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class BillPdfService {
   private readonly logger = new Logger(BillPdfService.name);
 
+  constructor(private readonly prisma: PrismaService) {}
+
   async generate(bill: any): Promise<Buffer> {
+    const admin = await this.prisma.admin.findFirst();
+    const shopName = admin?.shopName || 'Ramadhani Car Accessories and Autocare';
+
     let browser;
     try {
       browser = await puppeteer.launch({
@@ -52,7 +58,7 @@ export class BillPdfService {
           <body>
             <div class="header">
               <div>
-                <h1>CarStock Accessories</h1>
+                <h1>${shopName}</h1>
                 <p>123 Auto Market, Car City</p>
               </div>
               <div class="bill-info">
