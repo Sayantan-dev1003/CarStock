@@ -12,7 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from '../../../src/constants/theme';
+import { useTheme } from '../../../src/context/ThemeContext';
 import { productsApi } from '../../../src/api/products.api';
 import { inventoryApi } from '../../../src/api/inventory.api';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
@@ -23,6 +23,8 @@ import { AppHeader } from '../../../src/components/common/AppHeader';
 import { StockLog } from '../../../src/types/product.types';
 
 export default function ProductDetailScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [historyPage, setHistoryPage] = useState(1);
@@ -176,7 +178,8 @@ export default function ProductDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -240,7 +243,7 @@ const styles = StyleSheet.create({
   },
   pricingCard: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.textPrimary, // Dark theme for card
+    backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.lg,
     padding: 20,
     ...theme.shadow.lg,
@@ -251,12 +254,12 @@ const styles = StyleSheet.create({
   },
   vDivider: {
     width: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
   priceLabel: {
     fontSize: 10,
     fontFamily: theme.font.bodyBold,
-    color: theme.colors.textMuted,
+    color: 'rgba(0,0,0,0.6)',
     textTransform: 'uppercase',
     marginBottom: 6,
     letterSpacing: 0.5,
@@ -264,7 +267,7 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 18,
     fontFamily: theme.font.heading,
-    color: theme.colors.bgCard,
+    color: '#1A1817',
   },
   section: {
     marginTop: 32,
@@ -393,3 +396,4 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
+}

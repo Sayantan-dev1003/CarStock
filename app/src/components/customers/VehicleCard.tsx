@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { AppCard } from '../common/AppCard';
 import { Vehicle } from '../../types/customer.types';
 
@@ -18,6 +18,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   selected,
   onPress,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   return (
     <AppCard 
       onPress={onPress ? () => onPress(vehicle.id) : undefined} 
@@ -67,7 +69,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   card: {
     width: '100%',
     marginBottom: theme.spacing.md,
@@ -143,3 +146,5 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.sm,
   },
 });
+
+}

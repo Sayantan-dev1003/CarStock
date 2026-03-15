@@ -13,7 +13,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from '../../../src/constants/theme';
+import { useTheme } from '../../../src/context/ThemeContext';
 import { AppInput } from '../../../src/components/common/AppInput';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { AppCard } from '../../../src/components/common/AppCard';
@@ -25,6 +25,8 @@ import { formatCurrency, formatDate } from '../../../src/utils/format';
 import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function CustomerSelectScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const { setCustomer, setVehicle } = useBillingStore();
 
@@ -252,7 +254,8 @@ export default function CustomerSelectScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -418,3 +421,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+
+}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { AppButton } from '../common/AppButton';
 import { formatCurrency } from '../../utils/format';
 import { BillItem } from '../../types/billing.types';
@@ -19,6 +19,8 @@ export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
   onProceed,
   onDiscountPress,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const gst = subtotal * 0.18; // 9% CGST + 9% SGST
   const total = subtotal + gst - discount;
@@ -69,7 +71,8 @@ export const BillSummaryBar: React.FC<BillSummaryBarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   safeArea: {
     backgroundColor: theme.colors.bgCard,
     borderTopWidth: 1,
@@ -132,3 +135,5 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
 });
+
+}

@@ -7,13 +7,15 @@ import {
     Alert,
     TouchableOpacity,
     Image,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { theme } from '../../../src/constants/theme';
+import { useTheme } from '../../../src/context/ThemeContext';
 import { AppInput } from '../../../src/components/common/AppInput';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { productsApi } from '../../../src/api/products.api';
@@ -24,6 +26,8 @@ import { AppHeader } from '../../../src/components/common/AppHeader';
 const CATEGORIES = ['TYRES', 'BATTERIES', 'BRAKES', 'OILS', 'WIPERS', 'LIGHTING', 'AUDIO', 'OTHER'];
 
 export default function AddEditProductScreen() {
+    const { theme } = useTheme();
+    const styles = createStyles(theme);
     const { id } = useLocalSearchParams();
     const isEdit = !!id;
     const router = useRouter();
@@ -154,9 +158,13 @@ export default function AddEditProductScreen() {
     if (isEdit && isFetching) return <LoadingSpinner />;
 
     return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView 
+            style={styles.container} 
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+        >
             <AppHeader title={isEdit ? 'Edit Product' : 'Add New Product'} showBackButton />
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={styles.imageSection}>
                     <TouchableOpacity
                         style={styles.imagePlaceholder}
@@ -354,11 +362,12 @@ export default function AddEditProductScreen() {
                     />
                 </View>
             </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+    return StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.bg,
@@ -462,3 +471,5 @@ const styles = StyleSheet.create({
         marginBottom: 48,
     },
 });
+
+}

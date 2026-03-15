@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList, Text, TouchableOpacity, ActivityIndicator }
 import { useQuery } from '@tanstack/react-query';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { AppInput } from '../common/AppInput';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { productsApi } from '../../api/products.api';
 import { useDebounce } from '../../hooks/useDebounce';
 import { ProductSearchResult } from '../../types/product.types';
@@ -14,6 +14,8 @@ interface ProductSearchBarProps {
 }
 
 export const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ onProductSelect }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
@@ -86,7 +88,8 @@ export const ProductSearchBar: React.FC<ProductSearchBarProps> = ({ onProductSel
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     zIndex: 1000,
     width: '100%',
@@ -172,3 +175,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+}

@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from '../../../src/constants/theme';
+import { useTheme } from '../../../src/context/ThemeContext';
 import { billingApi } from '../../../src/api/billing.api';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
 import { formatCurrency, formatDateTime, formatBillNumber } from '../../../src/utils/format';
@@ -21,6 +21,8 @@ import { AppButton } from '../../../src/components/common/AppButton';
 import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function BillDetailScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -206,7 +208,8 @@ export default function BillDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
   },
   pricingCard: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.textPrimary,
+    backgroundColor: theme.colors.primary,
     borderRadius: 24,
     padding: 20,
     ...theme.shadow.lg,
@@ -419,3 +422,4 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+}

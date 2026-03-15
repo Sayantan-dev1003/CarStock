@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency } from '../../utils/format';
 import { Customer } from '../../types/customer.types';
 
@@ -10,6 +10,8 @@ interface CustomerCardProps {
 }
 
 export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onPress }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -37,7 +39,8 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onPress })
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: 20,
@@ -92,3 +95,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
 });
+
+}

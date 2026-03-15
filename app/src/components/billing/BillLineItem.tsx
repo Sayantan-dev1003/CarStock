@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency } from '../../utils/format';
 import { BillItem } from '../../types/billing.types';
 
@@ -16,6 +16,8 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
   onQuantityChange,
   onRemove,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   return (
     <View style={styles.container}>
       <View style={styles.leftContent}>
@@ -58,7 +60,8 @@ export const BillLineItem: React.FC<BillLineItemProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     backgroundColor: theme.colors.bgCard,
     padding: 16,
@@ -118,3 +121,5 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
 });
+
+}

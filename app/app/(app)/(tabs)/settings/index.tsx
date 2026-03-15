@@ -12,13 +12,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { theme } from '../../../../src/constants/theme';
+import { useTheme } from '../../../../src/context/ThemeContext';
 import { useAuthStore } from '../../../../src/store/auth.store';
 import { useBiometric } from '../../../../src/hooks/useBiometric';
 import { AppHeader } from '../../../../src/components/common/AppHeader';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { theme, isDarkMode, toggleTheme } = useTheme();
   const { admin, clearAuth } = useAuthStore();
   const { authenticate, checkAvailability } = useBiometric();
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
@@ -114,11 +115,17 @@ export default function SettingsScreen() {
     </TouchableOpacity>
   );
 
+  const styles = createStyles(theme);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <AppHeader 
         title="Settings" 
         subtitle="Manage your account and preferences" 
+        rightAction={{
+          icon: isDarkMode ? 'sunny-outline' : 'moon-outline',
+          onPress: toggleTheme,
+        }}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -128,8 +135,8 @@ export default function SettingsScreen() {
             <Text style={styles.avatarText}>{getInitials(admin?.name || 'A')}</Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>{admin?.name || 'Administrator'}</Text>
-            <Text style={styles.userRole}>Store Admin</Text>
+            <Text style={styles.userName}>Store Admin</Text>
+            <Text style={styles.userRole}>{admin?.email || 'admin@carstock.com'}</Text>
           </View>
         </View>
 
@@ -154,14 +161,6 @@ export default function SettingsScreen() {
                 params: { flow: 'reset' }
             })
           )}
-          {renderSettingItem(
-            'mail-outline',
-            'Email Address',
-            admin?.email || 'admin@carstock.com',
-            null,
-            null,
-            () => {}
-          )}
         </View>
 
         {/* Preferences Section */}
@@ -173,14 +172,6 @@ export default function SettingsScreen() {
             'Stock and billing alerts',
             notificationsEnabled,
             toggleNotifications
-          )}
-          {renderSettingItem(
-            'moon-outline',
-            'Appearance',
-            'Follow system theme',
-            null,
-            null,
-            () => {}
           )}
         </View>
 
@@ -205,7 +196,8 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -217,7 +209,7 @@ const styles = StyleSheet.create({
   },
   profileCard: {
     backgroundColor: theme.colors.bgCard,
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -257,17 +249,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   sectionHeader: {
-    fontSize: 12,
-    fontFamily: theme.font.bodyBold,
-    color: theme.colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
+    fontSize: 18,
+    fontFamily: theme.font.heading,
+    color: theme.colors.textPrimary,
+    textTransform: 'none',
+    letterSpacing: -0.5,
+    marginBottom: 16,
     marginLeft: 4,
   },
   settingsGroup: {
     backgroundColor: theme.colors.bgCard,
-    borderRadius: 20,
+    borderRadius: 16,
     marginBottom: 32,
     overflow: 'hidden',
     borderWidth: 1,
@@ -333,4 +325,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+}
 

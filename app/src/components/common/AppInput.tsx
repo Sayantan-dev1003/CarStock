@@ -8,7 +8,7 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 
 interface AppInputProps extends TextInputProps {
@@ -30,6 +30,8 @@ export const AppInput: React.FC<AppInputProps> = ({
   style,
   ...props
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [isFocused, setIsFocused] = useState(false);
 
   return (
@@ -81,7 +83,8 @@ export const AppInput: React.FC<AppInputProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     marginBottom: theme.spacing.md,
     width: '100%',
@@ -105,12 +108,12 @@ const styles = StyleSheet.create({
     height: 52,
   },
   focused: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.bgCard,
     borderColor: theme.colors.primary,
   },
   errorBorder: {
     borderColor: theme.colors.error,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.bgCard,
   },
   disabled: {
     opacity: 0.6,
@@ -144,3 +147,5 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 });
+
+}

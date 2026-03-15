@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency } from '../../utils/format';
 import { Product } from '../../types/product.types';
 
@@ -14,6 +14,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onViewDetails,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const isLowStock = product.quantity <= 10;
   const isOutOfStock = product.quantity === 0;
 
@@ -62,7 +64,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: theme.radius.md,
@@ -146,3 +149,5 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
   },
 });
+
+}

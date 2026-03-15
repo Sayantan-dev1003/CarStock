@@ -14,9 +14,31 @@ import { queryClient } from '../src/utils/queryClient';
 import { OfflineBanner } from '../src/components/common/OfflineBanner';
 import { StatusBar } from 'expo-status-bar';
 import { theme } from '../src/constants/theme';
+import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+const NavBarSetter = () => {
+  const { isDarkMode, theme } = useTheme();
+  
+  useEffect(() => {
+    const setup = async () => {
+      try {
+        await NavigationBar.setBackgroundColorAsync(isDarkMode ? '#121110' : '#FFFFFF');
+        await NavigationBar.setButtonStyleAsync(isDarkMode ? 'light' : 'dark');
+      } catch (e) {
+        // edge-to-edge mode, navigation bar color managed by system 
+      }
+    };
+    setup();
+  }, [isDarkMode]);
+
+  const statusStyle = isDarkMode ? "light" : "dark";
+  const statusColor = isDarkMode ? "#121110" : theme.colors.bg || "#FAF9F6";
+
+  return <StatusBar style={statusStyle} backgroundColor={statusColor} translucent={false} />;
+};
 
 export default function RootLayout() {
   const { loadStoredTokens, clearAuth } = useAuthStore();
@@ -41,18 +63,6 @@ export default function RootLayout() {
 
     authEvents.on('auth:logout', handleLogout);
 
-    // Wrap in try-catch — throws on edge-to-edge enabled devices
-    const setupNavigationBar = async () => {
-      try {
-        await NavigationBar.setBackgroundColorAsync('#FFFFFF'); 
-        await NavigationBar.setButtonStyleAsync('dark');
-      } catch (e) {
-        // edge-to-edge mode, navigation bar color managed by system
-      }
-    };
-    
-    setupNavigationBar();
-
     return () => {
       authEvents.off('auth:logout', handleLogout);
     };
@@ -60,7 +70,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      // Hide the splash screen after the fonts have loaded (or a error was returned) and the UI is ready.
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
@@ -71,17 +80,19 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <PaperProvider>
-          <StatusBar style="dark" backgroundColor="#FAF9F6" translucent={false} />
-          <OfflineBanner />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(app)" options={{ headerShown: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-          </Stack>
-        </PaperProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <NavBarSetter />
+        <QueryClientProvider client={queryClient}>
+          <PaperProvider>
+            <OfflineBanner />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(app)" options={{ headerShown: false }} />
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+            </Stack>
+          </PaperProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

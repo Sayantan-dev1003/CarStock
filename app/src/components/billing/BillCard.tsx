@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency } from '../../utils/format';
 import { Bill } from '../../types/billing.types';
 import dayjs from 'dayjs';
@@ -12,6 +12,8 @@ interface BillCardProps {
 }
 
 export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED': return theme.colors.success;
@@ -76,7 +78,8 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onPress }) => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: 24,
@@ -180,3 +183,5 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
   },
 });
+
+}

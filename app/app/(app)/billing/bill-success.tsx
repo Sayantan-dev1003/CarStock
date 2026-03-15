@@ -19,7 +19,7 @@ import Animated, {
   withSequence,
   withTiming
 } from 'react-native-reanimated';
-import { theme } from '../../../src/constants/theme';
+import { useTheme } from '../../../src/context/ThemeContext';
 import { AppHeader } from '../../../src/components/common/AppHeader';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { useBillingStore } from '../../../src/store/billing.store';
@@ -27,6 +27,8 @@ import { formatCurrency, formatBillNumber } from '../../../src/utils/format';
 import { billingApi } from '../../../src/api/billing.api';
 
 export default function BillSuccessScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
@@ -201,7 +203,8 @@ export default function BillSuccessScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -397,3 +400,5 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+
+}

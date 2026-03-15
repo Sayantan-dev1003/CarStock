@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency } from '../../utils/format';
 
 interface RevenueData {
@@ -16,6 +16,8 @@ interface RevenueChartProps {
 const { width } = Dimensions.get('window');
 
 export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   if (!data || data.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -68,7 +70,8 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     backgroundColor: theme.colors.bgCard,
     padding: 20,
@@ -127,3 +130,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+}

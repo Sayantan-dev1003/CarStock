@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { theme } from '../../../../src/constants/theme';
+import { useTheme } from '../../../../src/context/ThemeContext';
 import { AppCard } from '../../../../src/components/common/AppCard';
 import { reportsApi } from '../../../../src/api/reports.api';
 import { productsApi } from '../../../../src/api/products.api';
@@ -27,6 +27,8 @@ import { AppButton } from '../../../../src/components/common/AppButton';
 import { QuickActionGrid } from '../../../../src/components/dashboard/QuickActionGrid';
 
 export default function DashboardScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const { isConnected } = useSocket();
   const { setup: setupNotifications } = useNotifications();
@@ -113,7 +115,7 @@ export default function DashboardScreen() {
               value={formatCurrency(dashboardData?.todayRevenue || 0)}
               icon="wallet"
               variant="primary"
-              trend={{ value: 12, isPositive: true }}
+              
             />
           </View>
           <View style={styles.metricsRow}>
@@ -185,7 +187,8 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -304,3 +307,5 @@ const styles = StyleSheet.create({
   },
 });
 
+
+}

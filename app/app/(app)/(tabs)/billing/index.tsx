@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../../../src/constants/theme';
+import { useTheme } from '../../../../src/context/ThemeContext';
 import { useBillingStore } from '../../../../src/store/billing.store';
 import { ProductSearchBar } from '../../../../src/components/billing/ProductSearchBar';
 import { BillLineItem } from '../../../../src/components/billing/BillLineItem';
@@ -38,6 +38,8 @@ const YEARS = [2024, 2025, 2026, 2027];
 const DAYS = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
 
 export default function BillingScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -544,7 +546,8 @@ export default function BillingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -754,3 +757,5 @@ const styles = StyleSheet.create({
   },
 });
 
+
+}

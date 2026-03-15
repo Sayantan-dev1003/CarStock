@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { theme } from '../../../src/constants/theme';
+import { useTheme } from '../../../src/context/ThemeContext';
 import { AppButton } from '../../../src/components/common/AppButton';
 import { AppHeader } from '../../../src/components/common/AppHeader';
 import { useBillingStore } from '../../../src/store/billing.store';
@@ -21,6 +21,8 @@ import { formatCurrency } from '../../../src/utils/format';
 import { PaymentMode, CreateBillPayload } from '../../../src/types/billing.types';
 
 export default function PaymentScreen() {
+    const { theme } = useTheme();
+    const styles = createStyles(theme);
     const router = useRouter();
     const {
         items,
@@ -169,7 +171,8 @@ export default function PaymentScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+    return StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.bg,
@@ -322,3 +325,5 @@ const styles = StyleSheet.create({
         fontFamily: theme.font.body,
     },
 });
+
+}

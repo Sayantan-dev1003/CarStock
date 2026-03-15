@@ -31,8 +31,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   const colors = getColors();
 
   return (
-    <View style={[styles.badge, { backgroundColor: colors.bg }, style]}>
-      <Text style={[styles.text, { color: colors.text }]}>{status}</Text>
+    <View style={[styles.badge, { backgroundColor: theme.colors.primary }, style]}>
+      <Text style={[styles.text, { color: theme.colors.bgCard }]}>{status}</Text>
     </View>
   );
 };

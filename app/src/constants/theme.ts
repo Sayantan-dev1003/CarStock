@@ -1,4 +1,4 @@
-export const theme = {
+export const lightTheme = {
   colors: {
     // Backgrounds
     bg: '#FDFCFB',           // warmer off-white, primary background
@@ -71,6 +71,33 @@ export const theme = {
     },
   },
 };
+
+export const darkTheme = {
+  ...lightTheme,
+  colors: {
+    bg: '#1A1817',           // deep dark stone/warm black
+    bgCard: '#353230',       // stone-900, slightly lighter
+    bgMuted: '#22201F',      // darker than bgCard to make inputs look sunken
+
+    primary: '#F59E0B',      // amber-500, brighter for high dark mode contrast
+    primaryLight: '#451A03', // transparent dark amber background 
+    primaryDark: '#D97706',   // amber-600
+    primaryDeep: '#FEF3C7',  // amber-100 for high dark text contrast
+
+    textPrimary: '#FAFAF9',  // stone-50, near white
+    textSecondary: '#D6D3D1', // stone-300
+    textMuted: '#78716C',    // stone-500
+
+    success: '#10B981',      // emerald-500
+    error: '#EF4444',        // red-500
+    warning: '#F59E0B',      // amber-500
+
+    border: '#423E3B',       // stone-800
+    shadow: 'rgba(0, 0, 0, 0.4)', // stronger shadow for dark depths
+  },
+};
+
+export const theme = lightTheme; // for backward compatibility 
 
 // Maintain compatibility with existing code where possible by exporting old names or mapping them
 export const Colors = {

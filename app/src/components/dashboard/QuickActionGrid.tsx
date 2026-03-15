@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ActionItem {
   label: string;
@@ -18,6 +18,8 @@ const ACTIONS: ActionItem[] = [
 ];
 
 export const QuickActionGrid: React.FC = () => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
 
   return (
@@ -39,7 +41,8 @@ export const QuickActionGrid: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -72,3 +75,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+}

@@ -21,7 +21,7 @@ export function useBiometric() {
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage: 'Verify your identity to access CarStock Admin',
       fallbackLabel: 'Use PIN',
-      disableDeviceFallback: false,
+      disableDeviceFallback: true,
     });
 
     if (result.success) {

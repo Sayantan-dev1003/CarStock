@@ -7,7 +7,7 @@ import {
   Alert,
   Vibration
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { 
   useSharedValue, 
@@ -23,6 +23,7 @@ import { useBiometric } from '../../src/hooks/useBiometric';
 
 export default function PinScreen() {
   const router = useRouter();
+  const { flow } = useLocalSearchParams<{ flow?: string }>();
   const setPinVerified = useAuthStore((state) => state.setPinVerified);
   const { authenticate, checkAvailability } = useBiometric();
 
@@ -45,7 +46,8 @@ export default function PinScreen() {
         setIsSettingUp(true);
       } else {
         setStoredPin(pinValue);
-        if (available) {
+        const bioEnabled = await storage.getBiometricsEnabled();
+        if (available && bioEnabled) {
           handleBiometric();
         }
       }
@@ -110,8 +112,16 @@ export default function PinScreen() {
       }
     } else {
       if (enteredPin === storedPin) {
-        setPinVerified(true);
-        router.replace('/(app)/(tabs)/dashboard');
+        if (flow === 'reset') {
+          setIsSettingUp(true);
+          setConfirmPin('');
+          setPin('');
+          setIsConfirming(false);
+          setStoredPin(null);
+        } else {
+          setPinVerified(true);
+          router.replace('/(app)/(tabs)/dashboard');
+        }
       } else {
         triggerShake();
         setPin('');

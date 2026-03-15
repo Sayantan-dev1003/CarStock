@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface AppCardProps {
   children: React.ReactNode;
@@ -15,6 +15,8 @@ export const AppCard: React.FC<AppCardProps> = ({
   variant = 'elevated',
   style,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const Container = onPress ? TouchableOpacity : View;
 
   return (
@@ -32,7 +34,8 @@ export const AppCard: React.FC<AppCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   card: {
     backgroundColor: theme.colors.bgCard,
     borderRadius: 16,
@@ -46,3 +49,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
   },
 });
+
+}

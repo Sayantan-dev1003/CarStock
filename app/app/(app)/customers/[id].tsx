@@ -14,7 +14,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from '../../../src/constants/theme';
+import { useTheme } from '../../../src/context/ThemeContext';
 import { customersApi } from '../../../src/api/customers.api';
 import { billingApi } from '../../../src/api/billing.api';
 import { LoadingSpinner } from '../../../src/components/common/LoadingSpinner';
@@ -25,6 +25,8 @@ import { formatCurrency, formatDate, formatBillNumber } from '../../../src/utils
 import { AppHeader } from '../../../src/components/common/AppHeader';
 
 export default function CustomerDetailScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { id } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -225,7 +227,8 @@ export default function CustomerDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -308,7 +311,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: theme.colors.border,
   },
   actionsBar: {
     flexDirection: 'row',
@@ -421,3 +424,4 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
+}

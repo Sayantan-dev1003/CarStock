@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { theme } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface AppHeaderProps {
   title: string;
@@ -29,10 +30,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   showBackButton = false,
   onBackPress,
   rightAction,
-  backgroundColor = theme.colors.bg
+  backgroundColor
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
 
   const handleBack = () => {
     if (onBackPress) {
@@ -42,8 +44,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     }
   };
 
+  const styles = createStyles(theme);
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 12, backgroundColor }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 12, backgroundColor: backgroundColor || theme.colors.bg }]}>
       <View style={styles.headerRow}>
         {showBackButton && (
           <TouchableOpacity 
@@ -55,7 +59,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         )}
         <View style={[styles.titleContainer, !showBackButton && { marginLeft: 0 }]}>
           <Text style={styles.title}>{title}</Text>
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {subtitle && <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>{subtitle}</Text>}
         </View>
 
         {rightAction && (
@@ -71,7 +75,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     paddingBottom: 12,
@@ -107,7 +112,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 13,
     fontFamily: theme.font.body,
-    color: theme.colors.textSecondary,
     marginTop: -2,
   },
   rightButton: {
@@ -121,3 +125,4 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(217, 119, 6, 0.1)',
   },
 });
+}

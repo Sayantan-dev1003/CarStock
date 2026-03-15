@@ -13,7 +13,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { theme } from '../../../../src/constants/theme';
+import { useTheme } from '../../../../src/context/ThemeContext';
 import { productsApi } from '../../../../src/api/products.api';
 import { ProductCard } from '../../../../src/components/inventory/ProductCard';
 import { LoadingSpinner } from '../../../../src/components/common/LoadingSpinner';
@@ -27,6 +27,8 @@ const CATEGORIES: (ProductCategory | 'ALL' | 'LOW_STOCK')[] = [
 ];
 
 export default function InventoryScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
@@ -182,7 +184,8 @@ export default function InventoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -260,3 +263,5 @@ const styles = StyleSheet.create({
   },
 });
 
+
+}

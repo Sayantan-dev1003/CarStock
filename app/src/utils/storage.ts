@@ -31,6 +31,13 @@ export const storage = {
   async setPin(pin: string): Promise<void> {
     return AsyncStorage.setItem(KEYS.PIN, pin);
   },
+  async getBiometricsEnabled(): Promise<boolean> {
+    const value = await AsyncStorage.getItem('biometrics_enabled');
+    return value === 'true';
+  },
+  async setBiometricsEnabled(enabled: boolean): Promise<void> {
+    return AsyncStorage.setItem('biometrics_enabled', enabled.toString());
+  },
   async getCarData(): Promise<Record<string, string[]> | null> {
     const data = await AsyncStorage.getItem(KEYS.CAR_DATA_CACHE);
     return data ? JSON.parse(data) : null;

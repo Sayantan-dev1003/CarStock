@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { theme } from '../../../../src/constants/theme';
+import { useTheme } from '../../../../src/context/ThemeContext';
 import { customersApi } from '../../../../src/api/customers.api';
 import { CustomerCard } from '../../../../src/components/customers/CustomerCard';
 import { LoadingSpinner } from '../../../../src/components/common/LoadingSpinner';
@@ -24,6 +24,8 @@ import { MetricCard } from '../../../../src/components/dashboard/MetricCard';
 const TAGS = ['ALL', 'REGULAR', 'VIP', 'NEW', 'INACTIVE'];
 
 export default function CustomersScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState('ALL');
@@ -169,7 +171,8 @@ export default function CustomersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(theme: any) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.bg,
@@ -247,3 +250,5 @@ const styles = StyleSheet.create({
   },
 });
 
+
+}
