@@ -22,7 +22,7 @@ export class BillingService {
     private readonly prisma: PrismaService,
     private readonly inventoryGateway: InventoryGateway,
     private readonly inventoryService: InventoryService,
-    @InjectQueue(BILL_DELIVERY_QUEUE)
+    @InjectQueue(BILL_PROCESSING_QUEUE)
     private readonly billQueue: Bull.Queue,
     private readonly billPdfService: BillPdfService,
     private readonly uploadService: UploadService,
@@ -105,7 +105,6 @@ export class BillingService {
             sgst: totals.sgst,
             total: totals.total,
             paymentMode: dto.paymentMode,
-            status: (dto.status as any) ?? BillStatus.PROCESSING,
             items: {
               create: dto.items.map((item) => ({
                 productId: item.productId,
@@ -174,7 +173,7 @@ export class BillingService {
     this.logger.log(`Bill ${bill.billNumber} created for customer ${(bill as any).customer.name}, total: ${bill.total}`);
 
     // Offload bill generation tasks to the queue (PDF, Email, WhatsApp)
-    await this.billQueue.add(
+    const job = await this.billQueue.add(
       JOB_PROCESS_BILL,
       { billId: bill.id },
       {
@@ -184,6 +183,8 @@ export class BillingService {
         removeOnFail: false,
       },
     );
+
+    this.logger.log(`[BillingService] Job enqueued: jobId=${job.id}, billId=${bill.id}`);
 
     return {
       billId: bill.id,

@@ -1,4 +1,4 @@
-import { Process, Processor } from '@nestjs/bull';
+import { Process, Processor, OnQueueActive, OnQueueCompleted, OnQueueFailed, OnQueueStalled } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import type { Job } from 'bull';
 import { PrismaService } from '../prisma/prisma.service';
@@ -140,5 +140,25 @@ export class BillProcessor {
       // Re-throw so Bull can retry
       throw error;
     }
+  }
+
+  @OnQueueActive()
+  onActive(job: Job) {
+    this.logger.log(`[Bull] Job ${job.id} is ACTIVE`);
+  }
+
+  @OnQueueCompleted()
+  onCompleted(job: Job) {
+    this.logger.log(`[Bull] Job ${job.id} COMPLETED`);
+  }
+
+  @OnQueueFailed()
+  onFailed(job: Job, err: Error) {
+    this.logger.error(`[Bull] Job ${job.id} FAILED:`, err.message);
+  }
+
+  @OnQueueStalled()
+  onStalled(job: Job) {
+    this.logger.warn(`[Bull] Job ${job.id} is STALLED`);
   }
 }
